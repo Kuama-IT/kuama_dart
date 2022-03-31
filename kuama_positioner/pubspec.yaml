@@ -1,0 +1,32 @@
+name: kuama_positioner
+description: A new Flutter project.
+version: 0.0.1
+
+environment:
+  sdk: '>=2.16.0 <3.0.0'
+  flutter: ">=2.10.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  kuama_core:
+    path: ../kuama_core
+
+#  shared_preferences: ^2.0.13
+  geolocator: ^8.2.0
+
+  get_it: # Version defined in kuama_core
+  pure_extensions: ^4.1.1
+  bloc: ^8.0.3
+  equatable: ^2.0.3
+
+dev_dependencies:
+  mek_lints: ^0.2.0
+
+  flutter_test:
+    sdk: flutter
+
+  mocktail: ^0.3.0
+
+flutter:
