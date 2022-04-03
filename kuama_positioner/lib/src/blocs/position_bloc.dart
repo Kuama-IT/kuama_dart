@@ -84,7 +84,7 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
   }
 
   Future<void> _restoreBloc() async {
-    _positionSubs.clear();
+    await _positionSubs.clear();
   }
 
   /// Start listening for the service status
@@ -225,7 +225,7 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
     }
 
     // Nobody is listening to the real position
-    _positionSubs.clear();
+    await _positionSubs.clear();
     yield state.toIdle(hasPermission: true, isServiceEnabled: true);
   }
 

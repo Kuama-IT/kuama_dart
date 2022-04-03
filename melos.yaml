@@ -1,0 +1,12 @@
+name: kuama
+
+packages:
+  - '*/*'
+
+# Docs: https://github.com/invertase/melos/blob/main/docs/configuration/scripts.mdx
+scripts:
+  build:index:
+    description: Generate index files
+    run: melos exec -- "dart pub global run index_generator"
+    select-package:
+      scope: [ kuama_permissions ]

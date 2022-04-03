@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:kuama_permissions/src/failures.dart';
+import 'package:kuama_permissions/src/repositories/app_lifecycle_state_repository.dart';
 import 'package:kuama_permissions/src/repositories/permissions_manger_repository.dart';
 import 'package:kuama_permissions/src/repositories/permissions_preferences_repository.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
@@ -16,6 +17,7 @@ import 'package:pure_extensions/pure_extensions.dart';
 class PermissionsService {
   PermissionsPreferencesRepository get _preferences => GetIt.I();
   PermissionsManagerRepository get _handler => GetIt.I();
+  AppLifecycleStateRepository get _appLifecycleState => GetIt.I();
 
   /// Failures:
   /// - [FailedOpenAppPageFailure]
@@ -76,5 +78,11 @@ class PermissionsService {
     await _preferences.update(deniedPermissions, false);
 
     return result;
+  }
+
+  Stream<void> get onRequiredPermissionsRefresh {
+    return _appLifecycleState.onChanges
+        .distinct()
+        .where((event) => event == AppLifecycleState.resumed);
   }
 }

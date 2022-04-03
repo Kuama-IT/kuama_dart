@@ -1,15 +1,20 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:kuama_permissions/src/services/permissions_service.dart';
 import 'package:mek_data_class/mek_data_class.dart';
+import 'package:meta/meta.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pure_extensions/pure_extensions.dart';
 
+part '_permissions_state.dart';
 part 'permissions_bloc.b.g.dart';
-part 'permissions_state.dart';
 
 class PermissionsBloc extends Cubit<PermissionsBlocState> {
   PermissionsService get _service => GetIt.I();
+
+  StreamSubscription<void>? _refreshPermissionsSub;
 
   PermissionsBloc({
     Set<Permission> preCheck = const {},
@@ -20,6 +25,11 @@ class PermissionsBloc extends Cubit<PermissionsBlocState> {
           status: const {},
         )) {
     _onChecking(preCheck.toList());
+
+    // TODO: Start listening to stream only when there is at least one permission inside the state
+    _refreshPermissionsSub = _service.onRequiredPermissionsRefresh.listen((_) {
+      refresh();
+    });
   }
 
   /// Check permissions status
@@ -109,6 +119,7 @@ class PermissionsBloc extends Cubit<PermissionsBlocState> {
   bool _isRefreshing = false;
 
   /// Refresh the status of permissions
+  @visibleForTesting
   void refresh() async {
     if (_isRefreshing) return;
     _isRefreshing = true;
@@ -184,5 +195,11 @@ class PermissionsBloc extends Cubit<PermissionsBlocState> {
         ...results,
       },
     ));
+  }
+
+  @override
+  Future<void> close() async {
+    await _refreshPermissionsSub?.cancel();
+    await super.close();
   }
 }
