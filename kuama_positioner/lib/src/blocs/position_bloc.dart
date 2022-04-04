@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
-import 'package:kuama_flutter/kuama_flutter.dart' show Failure, StreamFailureExtension;
+import 'package:kuama_core/kuama_core.dart';
 import 'package:kuama_permissions/kuama_permissions.dart';
 import 'package:kuama_positioner/src/service/position_service.dart';
 import 'package:pure_extensions/pure_extensions.dart';
@@ -57,11 +57,14 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
 
   Stream<PositionBlocState> mapEventToState(PositionBlocEvent event) {
     if (event is _PermissionUpdatePositionBloc) {
-      return _mapPermissionAndServiceUpdates(
-          event.state.checkAnyGranted(_permissions), state.isServiceEnabled);
+      final hasPermission = event.state.checkAnyGranted(_permissions);
+      if (state.hasPermission == hasPermission) return const Stream.empty();
+      return _mapPermissionAndServiceUpdates(hasPermission, state.isServiceEnabled);
     }
     if (event is _ServiceUpdatePositionBloc) {
-      return _mapPermissionAndServiceUpdates(state.hasPermission, event.isServiceEnabled);
+      final isServiceEnabled = event.isServiceEnabled;
+      if (state.isServiceEnabled == isServiceEnabled) return const Stream.empty();
+      return _mapPermissionAndServiceUpdates(state.hasPermission, isServiceEnabled);
     }
 
     if (event is LocatePositionBloc) {
@@ -86,15 +89,15 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
 
   /// Start listening for the service status
   void _initServiceAndPermissionStatusListeners() {
+    permissionBloc.stream.listen((permissionState) {
+      add(_PermissionUpdatePositionBloc(permissionState));
+    }).addTo(_initSubs);
+
     Rx.concatEager([
       _service.checkService().asStream(),
       _service.onServiceChanges,
     ]).listen((isServiceEnabled) {
       add(_ServiceUpdatePositionBloc(isServiceEnabled));
-    }).addTo(_initSubs);
-
-    permissionBloc.stream.listen((permissionState) {
-      add(_PermissionUpdatePositionBloc(permissionState));
     }).addTo(_initSubs);
   }
 

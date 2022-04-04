@@ -1,9 +1,9 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:kuama_permissions/src/blocs/permissions_bloc.b.dart';
 import 'package:kuama_permissions/src/services/permissions_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:test/test.dart';
 
 import '../t_utils.dart';
 
@@ -15,13 +15,15 @@ void main() {
   late PermissionsBloc bloc;
 
   setUp(() {
-    GetIt.I
+    GetIt.instance
         .registerSingleton<PermissionsService>(_mockPermissionsService = _MockPermissionsService());
+
+    when(() => _mockPermissionsService.onRequiredPermissionsRefresh).thenAnswer((_) async* {});
 
     bloc = PermissionsBloc();
   });
 
-  tearDown(() => GetIt.I.reset());
+  tearDown(() => GetIt.instance.reset());
 
   group("PermissionsBloc", () {
     const tPermission1 = Permission.storage;

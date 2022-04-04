@@ -1,5 +1,6 @@
 name: kuama_positioner
 description: A new Flutter project.
+publish_to: 'none'
 version: 0.0.1
 
 environment:
@@ -10,10 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-#  kuama_core:
-#    path: ../kuama_core
-  kuama_flutter:
-    path: ../../kuama_flutter
+  kuama_core:
+    path: ../kuama_core
   kuama_permissions:
     path: ../kuama_permissions
 

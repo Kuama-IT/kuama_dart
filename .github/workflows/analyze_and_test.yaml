@@ -1,0 +1,50 @@
+name: Analyze and test code
+on:
+  pull_request:
+    # Some filters on when this actions should run on pull requests
+    # https://frontside.com/blog/2020-05-26-github-actions-pull_request/#:~:text=When%20a%20Github%20Actions%20workflow,opened%20%2C%20synchronize%20%2C%20and%20reopened%20.&text=Basic%20pull_request%20usage.
+    types: [ ready_for_review, review_requested, synchronize ]
+    paths: [ '**.dart' ]
+  push:
+    branches:
+      # Run test, analyze and coverage generation also when the PR gets merged into develop
+      - main
+jobs:
+  analyze-and-test:
+    # The type of machine to run the job on. [windows,macos, ubuntu , self-hosted]
+    runs-on: ubuntu-latest
+    # Sequence of tasks called
+    steps:
+      # The branch or tag ref that triggered the workflow will be checked out.
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: '12.x'
+      # Setup a flutter environment.
+      # https://github.com/marketplace/actions/flutter-action
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: stable
+          flutter-version: '2.10.x'
+          cache: true
+          cache-key: flutter-version
+
+      # Install melos
+      - name: Install global melos dependency
+        run: dart pub global activate melos
+
+      # Resolve dependencies
+      - name: Resolve dependencies
+        timeout-minutes: 2
+        run: melos run get
+
+      # Analysis code
+      - name: Check the format of the code
+        run: melos run format
+      - name: Analyze the code
+        run: melos run analyze
+
+      # Run flutter widgets tests and unit tests
+      - name: Test the code
+        run: melos run test --no-select
