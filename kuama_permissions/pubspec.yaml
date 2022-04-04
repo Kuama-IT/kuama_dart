@@ -47,3 +47,9 @@ index_generator:
     - '{_,**/_}*{/**,.dart}'
   indexes:
     - path: lib
+      name: kuama_permissions
+      exports:
+        - package: package:permission_handler/permission_handler.dart
+          show:
+            - Permission
+            - PermissionStatus
