@@ -1,4 +1,4 @@
-import 'package:kuama_flutter/kuama_flutter.dart';
+import 'package:kuama_core/kuama_core.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class MissingPermissionsFailure extends Failure {

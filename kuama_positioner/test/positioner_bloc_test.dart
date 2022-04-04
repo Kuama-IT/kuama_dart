@@ -1,64 +1,59 @@
+import 'package:get_it/get_it.dart';
+import 'package:kuama_permissions/kuama_permissions.dart';
 import 'package:kuama_positioner/src/blocs/position_bloc.dart';
-import 'package:kuama_positioner/src/use_cases/check_position_service.dart';
-import 'package:kuama_positioner/src/use_cases/get_current_position.dart';
-import 'package:kuama_positioner/src/use_cases/on_service_changes.dart';
+import 'package:kuama_positioner/src/service/position_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pure_extensions/pure_extensions.dart';
 import 'package:test/test.dart';
 
-class _MockCheckPositionService extends Mock implements CheckPositionService {}
+class _MockPositionService extends Mock implements PositionService {}
 
-class _MockOnPositionServiceChanges extends Mock implements OnPositionServiceChanges {}
-
-class _MockGetCurrentPosition extends Mock implements GetCurrentPosition {}
-
-class _MockOnPositionChanges extends Mock implements OnPositionChanges {}
-
-class _MockPositionPermissionBloc extends Mock implements PositionPermissionBloc {}
+class _MockPermissionsBloc extends Mock implements PermissionsBloc {}
 
 enum EmissionType { none, acquire, alreadyHas }
 
 void main() {
-  late _MockCheckPositionService mockCheckService;
-  late _MockOnPositionServiceChanges mockOnServiceChanges;
-  late _MockGetCurrentPosition mockGetCurrent;
-  late _MockOnPositionChanges mockOnPositionChanges;
+  late _MockPositionService mockPositionService;
 
-  late _MockPositionPermissionBloc mockPermissionBloc;
+  late _MockPermissionsBloc mockPermissionBloc;
 
   late PositionBloc bloc;
 
-  const tPermission = Permission.position;
+  const tPermission = Permission.locationWhenInUse;
 
   setUp(() {
-    GetIt.instance
-      ..reset()
-      ..registerSingleton<CheckPositionService>(mockCheckService = _MockCheckPositionService())
-      ..registerSingleton<OnPositionServiceChanges>(
-          mockOnServiceChanges = _MockOnPositionServiceChanges())
-      ..registerSingleton<GetCurrentPosition>(mockGetCurrent = _MockGetCurrentPosition())
-      ..registerSingleton<OnPositionChanges>(mockOnPositionChanges = _MockOnPositionChanges());
+    GetIt.instance.registerSingleton<PositionService>(mockPositionService = _MockPositionService());
   });
+
+  tearDown(() => GetIt.instance.reset());
 
   void init({
     EmissionType permission = EmissionType.none,
     EmissionType service = EmissionType.none,
   }) {
-    mockPermissionBloc = _MockPositionPermissionBloc();
+    mockPermissionBloc = _MockPermissionsBloc();
 
     when(() => mockPermissionBloc.state).thenReturn(permission == EmissionType.alreadyHas
-        ? const PermissionBlocRequested(permission: tPermission, status: PermissionStatus.granted)
-        : const PermissionBlocRequested(permission: tPermission, status: PermissionStatus.denied));
+        ? PermissionsBlocState(
+            places: {},
+            status: {tPermission: PermissionStatus.granted},
+          )
+        : PermissionsBlocState(
+            places: {},
+            status: {tPermission: PermissionStatus.denied},
+          ));
     when(() => mockPermissionBloc.stream).thenAnswer((_) async* {
       if (permission == EmissionType.acquire) {
-        yield const PermissionBlocRequested(
-            permission: tPermission, status: PermissionStatus.granted);
+        yield PermissionsBlocState(
+          places: {},
+          status: {tPermission: PermissionStatus.granted},
+        );
       }
     });
-    when(() => mockCheckService.call(NoParams())).thenAnswer((realInvocation) async {
+    when(() => mockPositionService.checkService()).thenAnswer((realInvocation) async {
       return service == EmissionType.alreadyHas;
     });
-    when(() => mockOnServiceChanges.call(NoParams())).thenAnswer((_) async* {
+    when(() => mockPositionService.onServiceChanges).thenAnswer((_) async* {
       if (service == EmissionType.acquire) {
         yield true;
       }
@@ -143,7 +138,7 @@ void main() {
         ]),
       );
 
-      when(() => mockGetCurrent.call(NoParams())).thenAnswer((_) async {
+      when(() => mockPositionService.getCurrentPosition()).thenAnswer((_) async {
         return const GeoPoint(0.0, 0.0);
       });
 
@@ -194,10 +189,10 @@ void main() {
         ]),
       );
 
-      when(() => mockGetCurrent.call(NoParams())).thenAnswer((_) async {
+      when(() => mockPositionService.getCurrentPosition()).thenAnswer((_) async {
         return const GeoPoint(0.0, 0.0);
       });
-      when(() => mockOnPositionChanges.call(NoParams())).thenAnswer((_) async* {
+      when(() => mockPositionService.onPositionChanges).thenAnswer((_) async* {
         await Future.delayed(const Duration());
         yield const GeoPoint(1.0, 1.0);
       });
@@ -292,10 +287,10 @@ void main() {
         isServiceEnabled: true,
       ));
 
-      when(() => mockGetCurrent.call(NoParams())).thenAnswer((_) async {
+      when(() => mockPositionService.getCurrentPosition()).thenAnswer((_) async {
         return const GeoPoint(0.0, 0.0);
       });
-      when(() => mockOnPositionChanges.call(NoParams())).thenAnswer((_) async* {
+      when(() => mockPositionService.onPositionChanges).thenAnswer((_) async* {
         yield const GeoPoint(0.0, 0.0);
       });
 
@@ -317,7 +312,7 @@ void main() {
         ]),
       );
 
-      verify(() => mockOnPositionChanges.call(NoParams())).called(1);
+      verify(() => mockPositionService.onPositionChanges).called(1);
 
       bloc.unTrack();
       await Future.delayed(const Duration(milliseconds: 10));
@@ -345,10 +340,10 @@ void main() {
     });
 
     test('Emit real time position after bloc is initialized but track request before it', () async {
-      when(() => mockGetCurrent.call(NoParams())).thenAnswer((_) async {
+      when(() => mockPositionService.getCurrentPosition()).thenAnswer((_) async {
         return const GeoPoint(0.0, 0.0);
       });
-      when(() => mockOnPositionChanges.call(NoParams())).thenAnswer((_) async* {});
+      when(() => mockPositionService.onPositionChanges).thenAnswer((_) async* {});
 
       init(permission: EmissionType.acquire, service: EmissionType.acquire);
 

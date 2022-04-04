@@ -5,8 +5,46 @@ packages:
 
 # Docs: https://github.com/invertase/melos/blob/main/docs/configuration/scripts.mdx
 scripts:
+  clean:
+    description: Clean all
+    run: melos exec -- "flutter clean"
+
+  get:
+    description: Resolve all dependecies
+    run: melos exec -- "flutter pub get"
+
+  revive:
+    description: Clean and resolve all dependencies
+    run: |
+      melos exec -- "flutter clean"
+      melos exec -- "flutter pub get"
+
+  format:
+    description: Analyze code format
+    run: >
+      find .
+      -path "./**/lib/**"
+      -name "*.dart"
+      ! -name "*.g.dart"
+      ! -name "env.dart"
+      ! -name "r.dart"
+      ! -name "en.dart"
+      ! -name "data_domain.dart"
+      | tr '\n' ' ' | xargs flutter format -l 100 --set-exit-if-changed
+
+  analyze:
+    description: Analyze code
+    run: melos exec -f -- "flutter analyze --no-pub --no-fatal-infos"
+
+  test:
+    description: Resolve all dependecies
+    run: melos exec --fail-fast -- "flutter test --no-pub"
+    select-package:
+      scope: [ kuama_permissions, kuama_positioner ]
+  
   build:index:
     description: Generate index files
     run: melos exec -- "dart pub global run index_generator"
     select-package:
       scope: [ kuama_permissions, kuama_positioner ]
+  
