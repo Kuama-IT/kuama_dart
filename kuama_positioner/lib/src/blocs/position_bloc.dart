@@ -3,12 +3,9 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
-import 'package:kuama_flutter/kuama_flutter.dart' show Failure, NoParams, StreamFailureExtension;
+import 'package:kuama_flutter/kuama_flutter.dart' show Failure, StreamFailureExtension;
 import 'package:kuama_permissions/kuama_permissions.dart';
-import 'package:kuama_positioner/src/use_cases/check_position_service.dart';
-import 'package:kuama_positioner/src/use_cases/get_current_position.dart';
-import 'package:kuama_positioner/src/use_cases/on_position_changes.dart';
-import 'package:kuama_positioner/src/use_cases/on_service_changes.dart';
+import 'package:kuama_positioner/src/service/position_service.dart';
 import 'package:pure_extensions/pure_extensions.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -16,10 +13,7 @@ part '_positioner_event.dart';
 part '_positioner_state.dart';
 
 class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
-  final CheckPositionService _checkService = GetIt.I();
-  final OnPositionServiceChanges _onServiceChanges = GetIt.I();
-  final GetCurrentPosition _getCurrentLocation = GetIt.I();
-  final OnPositionChanges _onPositionChanges = GetIt.I();
+  PositionService get _service => GetIt.I();
 
   /// Any of these permissions are sufficient for the use of the bloc
   static final _permissions = <Permission>{
@@ -93,8 +87,8 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
   /// Start listening for the service status
   void _initServiceAndPermissionStatusListeners() {
     Rx.concatEager([
-      _checkService.call(NoParams()).asStream(),
-      _onServiceChanges.call(NoParams()),
+      _service.checkService().asStream(),
+      _service.onServiceChanges,
     ]).listen((isServiceEnabled) {
       add(_ServiceUpdatePositionBloc(isServiceEnabled));
     }).addTo(_initSubs);
@@ -144,7 +138,7 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
       yield state.toLocating(isRealTime: false);
 
       try {
-        final position = await _getCurrentLocation.call(NoParams());
+        final position = await _service.getCurrentPosition();
         yield state.toLocated(isRealTime: false, currentPosition: position);
       } on Failure catch (failure) {
         yield state.toFailed(failure: failure);
@@ -156,8 +150,8 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
   /// Listen realtime position
   void _initPositionListener() {
     Rx.concatEager([
-      _getCurrentLocation.call(NoParams()).asStream(),
-      _onPositionChanges.call(NoParams()),
+      _service.getCurrentPosition().asStream(),
+      _service.onPositionChanges,
     ]).onFailureResume((failure) {
       add(_PositionUpdatePositionBloc(state.toFailed(failure: failure)));
       return const Stream.empty();

@@ -37,11 +37,7 @@ void main() async {
   GetIt.instance
     ..registerSingleton(GeolocatorPlatform.instance)
     ..registerSingleton<PositionRepository>(PositionRepositoryImpl())
-    ..registerSingleton(CheckPositionService())
-    ..registerSingleton(GetCurrentPosition())
-    ..registerSingleton(OnPositionChanges())
-    ..registerSingleton(OnPositionServiceChanges())
-    ..registerSingleton(OpenPositionServicePage());
+    ..registerSingleton(PositionService());
 
   runApp(const ProviderScope(
     child: MyApp(),
