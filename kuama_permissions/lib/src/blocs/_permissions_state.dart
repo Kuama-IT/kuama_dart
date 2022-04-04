@@ -30,8 +30,12 @@ class PermissionsBlocState with _$PermissionsBlocState {
     return !permissions.any(places.containsKey);
   }
 
-  bool checkGranted(Set<Permission> permissions) {
+  bool checkEveryGranted(Set<Permission> permissions) {
     return permissions.every((permission) => status[permission]?.isGranted ?? false);
+  }
+
+  bool checkAnyGranted(Set<Permission> permissions) {
+    return permissions.any((permission) => status[permission]?.isGranted ?? false);
   }
 
   /// Return only the permissions that can be check

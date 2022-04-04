@@ -35,7 +35,7 @@ class UnTrackPositionBloc extends PositionBlocEvent {
 
 /// Event to update the status of the position permission
 class _PermissionUpdatePositionBloc extends PositionBlocEvent {
-  final PermissionBlocState state;
+  final PermissionsBlocState state;
 
   const _PermissionUpdatePositionBloc(this.state);
 

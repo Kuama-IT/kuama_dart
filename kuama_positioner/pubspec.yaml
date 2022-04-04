@@ -34,3 +34,13 @@ dev_dependencies:
   mocktail: ^0.3.0
 
 flutter:
+
+index_generator:
+  exclude:
+    # Ignore all generated dart files
+    - '**.g.dart'
+    # Ignore all private folders or files
+    - '{_,**/_}*{/**,.dart}'
+  indexes:
+    - path: lib
+      name: kuama_positioner

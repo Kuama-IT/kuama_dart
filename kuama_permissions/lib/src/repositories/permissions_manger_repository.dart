@@ -11,6 +11,11 @@ class PermissionsManagerRepository {
     return await _handler.openAppSettings();
   }
 
+  /// Retrieves the [ServiceStatus] of each given [Permission]
+  Future<ServiceStatus> checkService(Permission permission) async {
+    return await _handler.checkServiceStatus(permission);
+  }
+
   /// Retrieves the [PermissionStatus] of each given [Permission]
   ///
   /// Returns a [Map] containing the status of each requested [Permission].

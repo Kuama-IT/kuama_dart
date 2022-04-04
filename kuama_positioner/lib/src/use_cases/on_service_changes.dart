@@ -1,7 +1,6 @@
 import 'package:get_it/get_it.dart';
-import 'package:kuama_flutter/src/features/positioner/repositories/position_repository.dart';
-import 'package:kuama_flutter/src/shared/feature_structure/use_case/params.dart';
-import 'package:kuama_flutter/src/shared/feature_structure/use_case/use_case.dart';
+import 'package:kuama_flutter/kuama_flutter.dart' show StreamUseCase, NoParams;
+import 'package:kuama_positioner/src/repositories/position_repository.dart';
 
 /// Receive the service status of the location
 class OnPositionServiceChanges extends StreamUseCase<NoParams, bool> {

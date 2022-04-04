@@ -60,6 +60,7 @@ abstract class PositionBlocState extends Equatable {
 
 /// It is waiting for a localization request that can only be requested when [canLocalize] is true
 class PositionBlocIdle extends PositionBlocState {
+  /// In ios it will always be false if the service is disabled
   @override
   final bool hasPermission;
   @override

@@ -3,6 +3,7 @@ import 'package:kuama_permissions/src/failures.dart';
 import 'package:kuama_permissions/src/repositories/app_lifecycle_state_repository.dart';
 import 'package:kuama_permissions/src/repositories/permissions_manger_repository.dart';
 import 'package:kuama_permissions/src/repositories/permissions_preferences_repository.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 import 'package:pure_extensions/pure_extensions.dart';
 
@@ -25,6 +26,18 @@ class PermissionsService {
     final res = await _handler.openAppSettings();
     if (res) return;
     throw FailedOpenAppPageFailure(AppPage.settings);
+  }
+
+  // TODO: Test and document in future release
+  Future<Map<Permission, bool>> checkService(List<Permission> permissions) async {
+    final results = await Future.wait(permissions.map((permission) async {
+      final result = await _handler.checkService(permission);
+      return MapEntry(permission, result);
+    }));
+    return results
+        .where((element) => element.value != ServiceStatus.notApplicable)
+        .map((e) => MapEntry(e.key, e.value == ServiceStatus.enabled))
+        .toMap();
   }
 
   /// Check permission status
