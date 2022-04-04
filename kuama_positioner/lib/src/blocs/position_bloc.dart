@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
+import 'package:kuama_flutter/kuama_flutter.dart' show Failure, NoParams, StreamFailureExtension;
 import 'package:kuama_permissions/kuama_permissions.dart';
 import 'package:kuama_positioner/src/use_cases/check_position_service.dart';
 import 'package:kuama_positioner/src/use_cases/get_current_position.dart';
@@ -20,10 +21,15 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
   final GetCurrentPosition _getCurrentLocation = GetIt.I();
   final OnPositionChanges _onPositionChanges = GetIt.I();
 
+  /// Any of these permissions are sufficient for the use of the bloc
+  static final _permissions = <Permission>{
+    Permission.location,
+    Permission.locationWhenInUse,
+    Permission.locationAlways
+  };
   final PermissionsBloc permissionBloc;
 
-  final _permissionSubs = CompositeSubscription();
-  final _serviceSubs = CompositeSubscription();
+  final _initSubs = CompositeSubscription();
   final _positionSubs = CompositeSubscription();
   var _realTimeListenerCount = 0;
 
@@ -32,19 +38,15 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
     required this.permissionBloc,
   }) : super(PositionBlocIdle(
           lastPosition: lastPosition,
-          hasPermission: permissionBloc.state.checkGranted({}),
+          hasPermission: permissionBloc.state.checkAnyGranted(_permissions),
           isServiceEnabled: false,
         )) {
     on<PositionBlocEvent>(
       (event, emit) => emit.forEach<PositionBlocState>(mapEventToState(event), onData: (s) => s),
       transformer: (events, mapper) => events.asyncExpand((event) => mapper(event)),
     );
-    permissionBloc.stream.listen((permissionState) {
-      add(_PermissionUpdatePositionBloc(permissionState));
-    }).addTo(_permissionSubs);
-    if (permissionBloc.state.isGranted) {
-      _initServicesStatusListener();
-    }
+
+    _initServiceAndPermissionStatusListeners();
   }
 
   /// Call it to locate a user.
@@ -61,10 +63,11 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
 
   Stream<PositionBlocState> mapEventToState(PositionBlocEvent event) {
     if (event is _PermissionUpdatePositionBloc) {
-      return _mapPermissionUpdate(event.state);
+      return _mapPermissionAndServiceUpdates(
+          event.state.checkAnyGranted(_permissions), state.isServiceEnabled);
     }
     if (event is _ServiceUpdatePositionBloc) {
-      return _mapServiceUpdate(event.isServiceEnabled);
+      return _mapPermissionAndServiceUpdates(state.hasPermission, event.isServiceEnabled);
     }
 
     if (event is LocatePositionBloc) {
@@ -88,70 +91,45 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
   }
 
   /// Start listening for the service status
-  void _initServicesStatusListener() {
-    if (_serviceSubs.isNotEmpty) return;
+  void _initServiceAndPermissionStatusListeners() {
     Rx.concatEager([
       _checkService.call(NoParams()).asStream(),
       _onServiceChanges.call(NoParams()),
     ]).listen((isServiceEnabled) {
       add(_ServiceUpdatePositionBloc(isServiceEnabled));
-    }).addTo(_serviceSubs);
+    }).addTo(_initSubs);
+
+    permissionBloc.stream.listen((permissionState) {
+      add(_PermissionUpdatePositionBloc(permissionState));
+    }).addTo(_initSubs);
   }
 
-  void _cancelServiceStatusListener() {
-    _serviceSubs.clear();
-  }
-
-  /// Update current status based on permission state
-  Stream<PositionBlocState> _mapPermissionUpdate(PermissionBlocState permissionState) async* {
-    // Skip all elaborating request states
-    if (permissionState is PermissionBlocRequesting ||
-        permissionState is PermissionBlocRequestConfirm) {
-      return;
-    }
-
-    final state = this.state;
-
-    final hasPermission = permissionState.isGranted;
-
-    // Permission has been revoked, clean up and update the bloc state
-    if (!hasPermission) {
-      _cancelServiceStatusListener();
-      await _restoreBloc();
-      yield state.toIdle(hasPermission: false);
-      return;
-    }
-    // Permission has been granted, update the bloc state
-    if (!state.hasPermission) {
-      // listen service status only after app gets the position permission
-      _initServicesStatusListener();
-      yield state.toIdle(hasPermission: true);
-      return;
-    }
-    // No major changes. The bloc already has permission
-  }
-
-  /// Update current status based on service status
+  /// Update current status based on permission and service status
   ///
   /// If the position has been requested in realtime, listening will be started
-  Stream<PositionBlocState> _mapServiceUpdate(bool isServiceEnabled) async* {
-    // Service is disabled, clean up and update the bloc state
-    if (!isServiceEnabled) {
+  Stream<PositionBlocState> _mapPermissionAndServiceUpdates(
+    bool hasPermission,
+    bool isServiceEnabled,
+  ) async* {
+    final state = this.state;
+
+    // Service is disabled or not has permission, clean up and update the bloc state
+    if (!hasPermission || !isServiceEnabled) {
+      yield state.toIdle(hasPermission: hasPermission, isServiceEnabled: isServiceEnabled);
       await _restoreBloc();
-      yield state.toIdle(isServiceEnabled: false);
       return;
     }
-    // Service is enabled, update the bloc state
-    if (!state.isServiceEnabled) {
-      yield state.toIdle(isServiceEnabled: true);
 
-      if (_realTimeListenerCount <= 0) return;
+    // Permission and service is enabled, start listen location updates
 
-      yield state.toLocating(isRealTime: true);
-      _initPositionListener();
-      return;
-    }
-    // No major changes. The bloc already has service status updated
+    if (_positionSubs.isNotEmpty) return;
+
+    yield state.toIdle(hasPermission: true, isServiceEnabled: true);
+
+    if (_realTimeListenerCount <= 0) return;
+
+    yield state.toLocating(isRealTime: true);
+    _initPositionListener();
   }
 
   /// It will output the current position once
@@ -232,8 +210,7 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
   @override
   Future<void> close() {
     _positionSubs.dispose();
-    _serviceSubs.dispose();
-    _permissionSubs.dispose();
+    _initSubs.dispose();
     return super.close();
   }
 }

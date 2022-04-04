@@ -1,4 +1,5 @@
-import 'package:kuama_flutter/kuama_flutter.dart';
+import 'package:get_it/get_it.dart';
+import 'package:kuama_flutter/kuama_flutter.dart' show UseCase, NoParams;
 import 'package:kuama_positioner/src/repositories/position_repository.dart';
 
 /// Check if the position service is enabled

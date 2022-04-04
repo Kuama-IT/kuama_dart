@@ -1,0 +1,20 @@
+targets:
+  $default:
+    builders:
+      source_gen:combining_builder:
+        generate_for:
+          exclude:
+            - test
+          include:
+            - 'lib/**/*.b.dart'
+
+      mek_data_class_generator|data_class:
+        enabled: true
+        options:
+          pageWidth: 100
+          changeable: true
+        generate_for:
+          exclude:
+            - test
+          include:
+            - 'lib/**/*.b.dart'

@@ -30,11 +30,11 @@ void main() {
       });
     });
 
-    group('checkGranted', () {
+    group('checkEveryGranted', () {
       test('Failed: permission is not resolved', () {
         final state = _createState();
 
-        expect(state.checkGranted({tPermission}), false);
+        expect(state.checkEveryGranted({tPermission}), false);
       });
 
       test('Failed: permission is denied', () {
@@ -42,7 +42,7 @@ void main() {
           status: {tPermission: PermissionStatus.denied},
         );
 
-        expect(state.checkGranted({tPermission}), false);
+        expect(state.checkEveryGranted({tPermission}), false);
       });
 
       test('Success: because permission is granted', () {
@@ -50,7 +50,31 @@ void main() {
           status: {tPermission: PermissionStatus.granted},
         );
 
-        expect(state.checkGranted({tPermission}), true);
+        expect(state.checkEveryGranted({tPermission}), true);
+      });
+    });
+
+    group('checkAnyGranted', () {
+      test('Failed: permission is not resolved', () {
+        final state = _createState();
+
+        expect(state.checkAnyGranted({tPermission}), false);
+      });
+
+      test('Failed: permission is denied', () {
+        final state = _createState(
+          status: {tPermission: PermissionStatus.denied},
+        );
+
+        expect(state.checkAnyGranted({tPermission}), false);
+      });
+
+      test('Success: because permission is granted', () {
+        final state = _createState(
+          status: {tPermission: PermissionStatus.granted},
+        );
+
+        expect(state.checkAnyGranted({tPermission}), true);
       });
     });
   });
