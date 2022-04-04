@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
-import 'package:kuama_core/kuama_core.dart';
+import 'package:kuama_permissions/kuama_permissions.dart';
 import 'package:kuama_positioner/src/use_cases/check_position_service.dart';
 import 'package:kuama_positioner/src/use_cases/get_current_position.dart';
 import 'package:kuama_positioner/src/use_cases/on_position_changes.dart';
@@ -20,7 +20,7 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
   final GetCurrentPosition _getCurrentLocation = GetIt.I();
   final OnPositionChanges _onPositionChanges = GetIt.I();
 
-  final PositionPermissionBloc permissionBloc;
+  final PermissionsBloc permissionBloc;
 
   final _permissionSubs = CompositeSubscription();
   final _serviceSubs = CompositeSubscription();
@@ -32,7 +32,7 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
     required this.permissionBloc,
   }) : super(PositionBlocIdle(
           lastPosition: lastPosition,
-          hasPermission: permissionBloc.state.isGranted,
+          hasPermission: permissionBloc.state.checkGranted({}),
           isServiceEnabled: false,
         )) {
     on<PositionBlocEvent>(

@@ -8,6 +8,14 @@ class AppLifecycleStateRepository {
   StreamController<AppLifecycleState>? _subject;
   WidgetsBindingObserver? _observer;
 
+  static AppLifecycleStateRepository? _instance;
+  AppLifecycleStateRepository._();
+
+  /// It is a singleton because only one observer should exist
+  factory AppLifecycleStateRepository() {
+    return _instance ??= AppLifecycleStateRepository._();
+  }
+
   Stream<AppLifecycleState> get onChanges {
     _subject ??= StreamController.broadcast(
       sync: true,
