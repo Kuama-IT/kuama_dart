@@ -1,3 +1,4 @@
+import 'package:example/services_repository_impl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -12,9 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 final permissions = {Permission.camera, Permission.locationWhenInUse};
 
 final permissionBloc = BlocProvider<PermissionsBloc, PermissionsBlocState>((ref) {
-  return PermissionsBloc(
-    preCheck: permissions,
-  );
+  return PermissionsBloc()..check(permissions);
 });
 
 final positionBloc = BlocProvider<PositionBloc, PositionBlocState>((ref) {
@@ -32,6 +31,7 @@ void main() async {
     ..registerSingleton(AppLifecycleStateRepository())
     ..registerSingleton(PermissionsManagerRepository())
     ..registerSingleton(PermissionsPreferencesRepository())
+    ..registerSingleton<ServicesRepository>(ServicesRepositoryImpl())
     ..registerSingleton(PermissionsService());
 
   GetIt.instance
@@ -72,13 +72,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     final state = ref.watch(permissionBloc);
     final positionState = ref.watch(positionBloc);
 
+    final askingPermissions = state.maybeMap(asked: (state) {
+      return state.payload.toSet();
+    }, orElse: (_) {
+      return const <Permission>{};
+    });
+
     String translatePermissionStatus(Permission permission) {
-      if (state.places.containsKey(permission)) {
-        return 'Place: ${state.places[permission]?.name}';
-      } else if (state.status.containsKey(permission)) {
-        return 'Status: ${state.status[permission]?.name}';
-      }
-      return '???';
+      return 'Status: ${state.permissionsStatus[permission]?.name ?? '???'}';
     }
 
     return Scaffold(
@@ -128,19 +129,24 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
             }).toList(),
             const Divider(),
             ...permissions.map((permission) {
+              final service = permission.toService();
               return Column(
                 children: [
                   Text('$permission: ${translatePermissionStatus(permission)}'),
+                  if (service != null) Text('$service: ${state.servicesStatus[service]}'),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       TextButton(
-                        onPressed: () => ref.read(permissionBloc.bloc).request({permission}),
+                        onPressed: state.isLoading
+                            ? () => ref.read(permissionBloc.bloc).ask({permission})
+                            : null,
                         child: Text('Request'),
                       ),
                       TextButton(
-                        onPressed: () =>
-                            ref.read(permissionBloc.bloc).request({permission}, tryAgain: true),
+                        onPressed: state.isLoading
+                            ? () => ref.read(permissionBloc.bloc).ask({permission}, tryAgain: true)
+                            : null,
                         child: Text('Re-Request'),
                       ),
                     ],
@@ -153,13 +159,15 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextButton(
-                  onPressed:
-                      state.isAsking ? () => ref.read(permissionBloc.bloc).resolveAsk(false) : null,
+                  onPressed: state.checkCanConfirmAsk(askingPermissions)
+                      ? () => ref.read(permissionBloc.bloc).confirmAsk(false)
+                      : null,
                   child: Text('Failed'),
                 ),
                 TextButton(
-                  onPressed:
-                      state.isAsking ? () => ref.read(permissionBloc.bloc).resolveAsk(true) : null,
+                  onPressed: state.checkCanConfirmAsk(askingPermissions)
+                      ? () => ref.read(permissionBloc.bloc).confirmAsk(true)
+                      : null,
                   child: Text('Success'),
                 ),
               ],

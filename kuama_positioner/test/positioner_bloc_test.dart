@@ -34,19 +34,25 @@ void main() {
     mockPermissionBloc = _MockPermissionsBloc();
 
     when(() => mockPermissionBloc.state).thenReturn(permission == EmissionType.alreadyHas
-        ? PermissionsBlocState(
-            places: {},
-            status: {tPermission: PermissionStatus.granted},
+        ? CheckedPermissionState(
+            isRefreshing: false,
+            permissionsStatus: {tPermission: PermissionStatus.granted},
+            servicesStatus: {},
+            payload: const {},
           )
-        : PermissionsBlocState(
-            places: {},
-            status: {tPermission: PermissionStatus.denied},
+        : CheckedPermissionState(
+            isRefreshing: false,
+            permissionsStatus: {tPermission: PermissionStatus.denied},
+            servicesStatus: {},
+            payload: const {},
           ));
     when(() => mockPermissionBloc.stream).thenAnswer((_) async* {
       if (permission == EmissionType.acquire) {
-        yield PermissionsBlocState(
-          places: {},
-          status: {tPermission: PermissionStatus.granted},
+        yield CheckedPermissionState(
+          isRefreshing: false,
+          permissionsStatus: {tPermission: PermissionStatus.granted},
+          servicesStatus: {},
+          payload: const {},
         );
       }
     });

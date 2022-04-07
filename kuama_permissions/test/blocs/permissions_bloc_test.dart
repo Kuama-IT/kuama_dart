@@ -1,15 +1,20 @@
+import 'dart:async';
+
+import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:kuama_permissions/src/blocs/permissions_bloc.b.dart';
+import 'package:kuama_permissions/src/entities/permissions_status_entity.b.dart';
+import 'package:kuama_permissions/src/entities/service.dart';
 import 'package:kuama_permissions/src/services/permissions_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:test/test.dart';
 
 import '../t_utils.dart';
 
 class _MockPermissionsService extends Mock implements PermissionsService {}
 
 void main() {
+  late StreamController<void> _onRequiredPermissionsRefresh;
   late _MockPermissionsService _mockPermissionsService;
 
   late PermissionsBloc bloc;
@@ -18,7 +23,13 @@ void main() {
     GetIt.instance
         .registerSingleton<PermissionsService>(_mockPermissionsService = _MockPermissionsService());
 
-    when(() => _mockPermissionsService.onRequiredPermissionsRefresh).thenAnswer((_) async* {});
+    _onRequiredPermissionsRefresh = StreamController.broadcast(sync: true);
+
+    when(() => _mockPermissionsService.onRequiredPermissionsRefresh).thenAnswer((_) {
+      return _onRequiredPermissionsRefresh.stream;
+    });
+
+    Service.values.forEach(registerFallbackValue);
 
     bloc = PermissionsBloc();
   });
@@ -28,116 +39,90 @@ void main() {
   group("PermissionsBloc", () {
     const tPermission1 = Permission.storage;
     const tPermission2 = Permission.camera;
-    const tPermission3 = Permission.location;
+    const tPermissionService = Permission.location;
+    const tService = Service.location;
 
     group('PermissionsBloc.check', () {
-      test('cant check nothing because already checking, resolving, requesting, completed', () {
-        bloc.emit(bloc.state.copyWith(
-          places: {
-            Permission.storage: PermissionPlace.checking,
-            Permission.bluetooth: PermissionPlace.asking,
-            Permission.camera: PermissionPlace.requesting,
-          },
-          status: {Permission.calendar: PermissionStatus.denied},
+      test('cant check nothing because state cant operate', () {
+        bloc.emit(bloc.state.toConfirmableAsk(
+          payload: {Permission.calendar},
+          permissionsStatus: {Permission.calendar: PermissionStatus.denied},
+          isRestored: false,
         ));
         var state = bloc.state;
 
-        bloc.check({
-          Permission.storage,
-          Permission.bluetooth,
-          Permission.camera,
-          Permission.calendar,
-        });
+        bloc.check({Permission.calendar});
 
         expect(bloc.state, state);
       });
 
-      test('success check with granted permission', () {
+      test('Check permissions', () async {
         var state = bloc.state;
 
-        when(() => _mockPermissionsService.checkPermissions(any())).thenAnswer((_) async {
-          return {tPermission1: PermissionStatus.granted};
+        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+          return PermissionsStatusEntity(
+            canAsk: true,
+            areAllGrantedAndEnabled: true,
+            permissions: {tPermission1: PermissionStatus.granted},
+            services: {},
+          );
         });
 
         after(() => bloc.check({tPermission1}));
 
-        expect(
+        await expectLater(
           bloc.stream,
           emitsInOrder([
-            state = state.copyWith(
-              places: {tPermission1: PermissionPlace.checking},
+            state = state.toChecking(
+              payload: {tPermission1},
             ),
-            state = state.copyWith(
-              places: {},
-              status: {tPermission1: PermissionStatus.granted},
+            state = state.toChecked(
+              payload: {tPermission1},
+              permissionsStatus: {tPermission1: PermissionStatus.granted},
             ),
           ]),
         );
       });
 
-      test('success check with permission negated', () {
+      test('success check permissions and start listen service changes', () async {
         var state = bloc.state;
-        const tPermission = Permission.storage;
+        const tPermission = Permission.location;
+        const tService = Service.location;
 
-        when(() => _mockPermissionsService.checkPermissions(any())).thenAnswer((_) async {
-          return {tPermission: PermissionStatus.permanentlyDenied};
+        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+          return PermissionsStatusEntity(
+            canAsk: false,
+            areAllGrantedAndEnabled: false,
+            permissions: {tPermission: PermissionStatus.permanentlyDenied},
+            services: {tService: true},
+          );
         });
+        when(() => _mockPermissionsService.onServiceChanges(any())).thenAnswer((_) async* {});
 
         after(() => bloc.check({tPermission}));
 
-        expect(
+        await expectLater(
           bloc.stream,
           emitsInOrder([
-            state = state.copyWith(
-              places: {tPermission: PermissionPlace.checking},
+            state = state.toChecking(
+              payload: {tPermission},
             ),
-            state = state.copyWith(
-              places: {},
-              status: {tPermission: PermissionStatus.permanentlyDenied},
+            state = state.toChecked(
+              permissionsStatus: {tPermission: PermissionStatus.permanentlyDenied},
+              servicesStatus: {tService: true},
+              payload: {tPermission},
             ),
           ]),
         );
-      });
-
-      test('cancel check', () {
-        var state = bloc.state;
-
-        when(() => _mockPermissionsService.checkPermissions(any())).thenAnswer((_) async {
-          bloc.emit(bloc.state.copyWith(
-            places: {tPermission1: PermissionPlace.requesting},
-          ));
-          return {tPermission1: PermissionStatus.permanentlyDenied};
-        });
-
-        after(() => bloc.check({tPermission1}));
-
-        expect(
-          bloc.stream,
-          emitsInOrder([
-            state = state.copyWith(
-              places: {tPermission1: PermissionPlace.checking},
-            ),
-            state = state.copyWith(
-              places: {tPermission1: PermissionPlace.requesting},
-              status: {},
-            ),
-          ]),
-        );
+        verify(() => _mockPermissionsService.onServiceChanges(Service.location));
       });
     });
 
-    group('PermissionsBloc.resolveAsk', () {
-      test('cant resolve nothing because unresolvable list is empty', () {
-        var state = bloc.state;
-
-        bloc.resolveAsk(false);
-
-        expect(bloc.state, state);
-      });
-
-      test('resolve and request permission', () async {
-        bloc.emit(bloc.state.copyWith(
-          places: {tPermission1: PermissionPlace.asking},
+    group('PermissionsBloc.confirmAsk', () {
+      test('permissions is asked', () async {
+        bloc.emit(bloc.state.toConfirmableAsk(
+          payload: {tPermission1},
+          isRestored: false,
         ));
         var state = bloc.state;
 
@@ -145,219 +130,260 @@ void main() {
           return {tPermission1: PermissionStatus.granted};
         });
 
-        after(() => bloc.resolveAsk(true));
+        after(() => bloc.confirmAsk(true));
 
         await expectLater(
           bloc.stream,
           emitsInOrder([
-            state = state.copyWith(
-              places: {tPermission1: PermissionPlace.requesting},
+            state = state.toAsking(
+              payload: {tPermission1},
             ),
-            state = state.copyWith(
-              places: {},
-              status: {tPermission1: PermissionStatus.granted},
+            state = state.toAsked(
+              permissionsStatus: {tPermission1: PermissionStatus.granted},
+              payload: {tPermission1},
+              isCancelled: false,
+              isRequested: true,
             ),
           ]),
         );
-        verifyNever(() => _mockPermissionsService.addUnRequestPermissions(any()));
+        verifyNever(() => _mockPermissionsService.markAskedPermissions(any()));
       });
 
-      test('negate resolution', () async {
-        bloc.emit(bloc.state.copyWith(
-          places: {tPermission1: PermissionPlace.asking},
+      test('permissions is not asked', () async {
+        bloc.emit(bloc.state.toConfirmableAsk(
+          payload: {tPermission1},
+          isRestored: false,
         ));
         var state = bloc.state;
 
-        when(() => _mockPermissionsService.addUnRequestPermissions(any())).thenAnswer((_) async {});
+        when(() => _mockPermissionsService.markAskedPermissions(any())).thenAnswer((_) async {});
 
-        after(() => bloc.resolveAsk(false));
+        after(() => bloc.confirmAsk(false));
 
         await expectLater(
           bloc.stream,
           emitsInOrder([
-            state = state.copyWith(
-              places: {tPermission1: PermissionPlace.requesting},
-              status: {},
+            state = state.toAsking(
+              payload: {tPermission1},
             ),
-            state = state.copyWith(
-              places: {},
-              status: {tPermission1: PermissionStatus.denied},
+            state = state.toAsked(
+              permissionsStatus: {tPermission1: PermissionStatus.denied},
+              payload: {tPermission1},
+              isCancelled: false,
+              isRequested: false,
             ),
           ]),
         );
-        verify(() => _mockPermissionsService.addUnRequestPermissions(any()));
+        verify(() => _mockPermissionsService.markAskedPermissions(any()));
+      });
+
+      test('confirm ask is cancelled', () async {
+        bloc.emit(bloc.state.toConfirmableAsk(
+          payload: {tPermission1},
+          isRestored: false,
+        ));
+        var state = bloc.state;
+
+        after(() => bloc.confirmAsk(null));
+
+        await expectLater(
+          bloc.stream,
+          emitsInOrder([
+            state = state.toAsked(
+              payload: {tPermission1},
+              isCancelled: true,
+              isRequested: false,
+            ),
+          ]),
+        );
+        verifyNever(() => _mockPermissionsService.markAskedPermissions(any()));
       });
     });
 
-    group('PermissionsBloc.request', () {
-      test('cant request nothing because already request is performing', () {
-        bloc.emit(bloc.state.copyWith(
-          places: {tPermission1: PermissionPlace.requesting},
-        ));
+    group('PermissionsBloc.ask', () {
+      test('skip check because permissions is already asked', () async {
         var state = bloc.state;
 
-        bloc.request({tPermission1});
-
-        expect(bloc.state, state);
-      });
-
-      test('cant request nothing because already ask is performing', () {
-        bloc.emit(bloc.state.copyWith(
-          places: {tPermission1: PermissionPlace.asking},
-        ));
-        var state = bloc.state;
-
-        bloc.request({tPermission1});
-
-        expect(bloc.state, state);
-      });
-
-      test('check but not request because permission is already requested', () {
-        var state = bloc.state;
-
-        when(() => _mockPermissionsService.checkPermissions(any())).thenAnswer((_) async {
-          return {
-            tPermission1: PermissionStatus.granted,
-            tPermission2: PermissionStatus.denied,
-            tPermission3: PermissionStatus.permanentlyDenied,
-          };
+        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+          return PermissionsStatusEntity(
+            canAsk: false,
+            areAllGrantedAndEnabled: false,
+            permissions: {tPermissionService: PermissionStatus.denied},
+            services: {tService: true},
+          );
         });
+        when(() => _mockPermissionsService.onServiceChanges(any())).thenAnswer((_) async* {});
 
-        after(() => bloc.request({tPermission1, tPermission2, tPermission3}));
+        after(() => bloc.ask({tPermissionService}));
 
-        expect(
+        await expectLater(
           bloc.stream,
           emitsInOrder([
-            state = state.copyWith(
-              places: {
-                tPermission1: PermissionPlace.requesting,
-                tPermission2: PermissionPlace.requesting,
-                tPermission3: PermissionPlace.requesting
-              },
+            state = state.toAsking(
+              payload: {tPermissionService},
             ),
-            state = state.copyWith(
-              places: {},
-              status: {
+            state = state.toAsked(
+              permissionsStatus: {tPermissionService: PermissionStatus.denied},
+              servicesStatus: {tService: true},
+              payload: {tPermissionService},
+              isCancelled: false,
+              isRequested: false,
+            ),
+          ]),
+        );
+        verify(() => _mockPermissionsService.onServiceChanges(tService));
+      });
+
+      test('cant ask confirm because all permissions are granted', () async {
+        var state = bloc.state;
+
+        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+          return PermissionsStatusEntity(
+            canAsk: false,
+            areAllGrantedAndEnabled: true,
+            permissions: {
+              tPermission1: PermissionStatus.granted,
+              tPermissionService: PermissionStatus.granted,
+            },
+            services: {tService: true},
+          );
+        });
+        when(() => _mockPermissionsService.onServiceChanges(any())).thenAnswer((_) async* {});
+
+        after(() => bloc.ask({tPermission1}));
+
+        await expectLater(
+          bloc.stream,
+          emitsInOrder([
+            state = state.toAsking(
+              payload: {tPermission1},
+            ),
+            state = state.toAsked(
+              permissionsStatus: {
+                tPermission1: PermissionStatus.granted,
+                tPermissionService: PermissionStatus.granted,
+              },
+              servicesStatus: {tService: true},
+              payload: {tPermission1},
+              isCancelled: false,
+              isRequested: false,
+            ),
+          ]),
+        );
+        verify(() => _mockPermissionsService.onServiceChanges(tService));
+      });
+
+      test('ask confirm because can ask permissions', () async {
+        var state = bloc.state;
+
+        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+          return PermissionsStatusEntity(
+            canAsk: true,
+            areAllGrantedAndEnabled: false,
+            permissions: {
+              tPermission1: PermissionStatus.granted,
+              tPermission2: PermissionStatus.denied,
+              tPermissionService: PermissionStatus.permanentlyDenied,
+            },
+            services: {tService: true},
+          );
+        });
+        when(() => _mockPermissionsService.onServiceChanges(any())).thenAnswer((_) async* {});
+
+        after(() => bloc.ask({tPermission1, tPermission2, tPermissionService}));
+
+        await expectLater(
+          bloc.stream,
+          emitsInOrder([
+            state = state.toAsking(
+              payload: {tPermission1, tPermission2, tPermissionService},
+            ),
+            state = state.toConfirmableAsk(
+              permissionsStatus: {
                 tPermission1: PermissionStatus.granted,
                 tPermission2: PermissionStatus.denied,
-                tPermission3: PermissionStatus.permanentlyDenied
+                tPermissionService: PermissionStatus.permanentlyDenied
               },
+              servicesStatus: {tService: true},
+              payload: {tPermission1, tPermission2, tPermissionService},
+              isRestored: false,
             ),
           ]),
         );
-      });
-
-      test('check (in checking) but not request because permission is already resolved', () {
-        bloc.emit(bloc.state.copyWith(
-          places: {tPermission1: PermissionPlace.checking},
-        ));
-        var state = bloc.state;
-
-        when(() => _mockPermissionsService.checkPermissions(any())).thenAnswer((_) async {
-          return {tPermission1: PermissionStatus.granted};
-        });
-
-        after(() => bloc.request({tPermission1}));
-
-        expect(
-          bloc.stream,
-          emitsInOrder([
-            state = state.copyWith(
-              places: {tPermission1: PermissionPlace.requesting},
-            ),
-            state = state.copyWith(
-              places: {},
-              status: {tPermission1: PermissionStatus.granted},
-            ),
-          ]),
-        );
-      });
-
-      test('check and request resolution for permission not already requested', () {
-        var state = bloc.state;
-
-        when(() => _mockPermissionsService.checkPermissions(any())).thenAnswer((_) async {
-          return {};
-        });
-
-        after(() => bloc.request({tPermission1}));
-
-        expect(
-          bloc.stream,
-          emitsInOrder([
-            state = state.copyWith(
-              places: {tPermission1: PermissionPlace.requesting},
-            ),
-            state = state.copyWith(
-              places: {tPermission1: PermissionPlace.asking},
-            ),
-          ]),
-        );
-      });
-
-      test('Try to request the denied permissions again', () {
-        bloc.emit(bloc.state.copyWith(
-          status: {
-            tPermission1: PermissionStatus.denied,
-            tPermission2: PermissionStatus.permanentlyDenied
-          },
-        ));
-        var state = bloc.state;
-
-        when(() => _mockPermissionsService.checkPermissions(any())).thenAnswer((_) async {
-          return {
-            tPermission1: PermissionStatus.denied,
-            tPermission2: PermissionStatus.permanentlyDenied
-          };
-        });
-        when(() => _mockPermissionsService.requestPermissions(any())).thenAnswer((_) async {
-          return {tPermission1: PermissionStatus.granted, tPermission2: PermissionStatus.granted};
-        });
-
-        after(() => bloc.request({tPermission1, tPermission2}, tryAgain: true));
-
-        expect(
-          bloc.stream,
-          emitsInOrder([
-            state = state.copyWith(
-              places: {tPermission1: PermissionPlace.asking, tPermission2: PermissionPlace.asking},
-            ),
-          ]),
-        );
+        verify(() => _mockPermissionsService.onServiceChanges(tService));
       });
     });
 
     group('PermissionsBloc.refresh', () {
-      test('Remove pending permission if permission is granted', () {
+      test('Update state with new permissions status', () async {
         bloc.emit(bloc.state.copyWith(
-          places: {
-            tPermission1: PermissionPlace.checking,
-            tPermission2: PermissionPlace.asking,
-            tPermission3: PermissionPlace.requesting
+          permissionsStatus: {
+            tPermission1: PermissionStatus.denied,
           },
         ));
         var state = bloc.state;
 
-        when(() => _mockPermissionsService.checkPermissions(any())).thenAnswer((_) async {
-          return {
-            tPermission1: PermissionStatus.granted,
-            tPermission2: PermissionStatus.granted,
-            tPermission3: PermissionStatus.granted
-          };
+        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+          return PermissionsStatusEntity(
+            canAsk: false,
+            areAllGrantedAndEnabled: false,
+            permissions: {
+              tPermission1: PermissionStatus.granted,
+            },
+            services: {},
+          );
         });
 
-        after(() => bloc.refresh());
+        after(() => _onRequiredPermissionsRefresh.add(null));
 
-        expect(
+        await expectLater(
           bloc.stream,
           emitsInOrder([
+            state = state.copyWith(isRefreshing: true),
             state = state.copyWith(
-              places: {},
-              status: {
+              isRefreshing: false,
+              permissionsStatus: {
                 tPermission1: PermissionStatus.granted,
-                tPermission2: PermissionStatus.granted,
-                tPermission3: PermissionStatus.granted
               },
+            ),
+          ]),
+        );
+      });
+
+      test('Resolved asking state when refresh is called', () async {
+        bloc.emit(bloc.state.toConfirmableAsk(
+          permissionsStatus: {
+            tPermission1: PermissionStatus.denied,
+          },
+          payload: {tPermission1},
+          isRestored: false,
+        ));
+        var state = bloc.state;
+
+        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+          return PermissionsStatusEntity(
+            canAsk: false,
+            areAllGrantedAndEnabled: false,
+            permissions: {
+              tPermission1: PermissionStatus.granted,
+            },
+            services: {},
+          );
+        });
+
+        after(() => _onRequiredPermissionsRefresh.add(null));
+
+        await expectLater(
+          bloc.stream,
+          emitsInOrder([
+            state = state.copyWith(isRefreshing: true),
+            state = state.toAsked(
+              permissionsStatus: {
+                tPermission1: PermissionStatus.granted,
+              },
+              payload: {tPermission1},
+              isCancelled: false,
+              isRequested: false,
             ),
           ]),
         );

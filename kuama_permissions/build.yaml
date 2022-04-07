@@ -12,7 +12,6 @@ targets:
         enabled: true
         options:
           pageWidth: 100
-          changeable: true
         generate_for:
           exclude:
             - test

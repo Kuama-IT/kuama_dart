@@ -1,88 +1,209 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kuama_permissions/src/blocs/permissions_bloc.b.dart';
+import 'package:kuama_permissions/src/entities/service.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+import '../t_utils.dart';
 
 void main() {
   group('PermissionsBlocState', () {
-    const tPermission = Permission.location;
+    const tPermission1 = Permission.location;
+    const tPermission2 = Permission.camera;
+    final permissions = {tPermission1, tPermission2};
+    const tCheckingState = CheckingPermissionState(
+      isRefreshing: false,
+      permissionsStatus: {},
+      servicesStatus: {},
+      payload: {},
+    );
+    const tCheckedState = CheckedPermissionState(
+      isRefreshing: false,
+      permissionsStatus: {},
+      servicesStatus: {},
+      payload: {},
+    );
+    const tAskingState = AskingPermissionsState(
+      isRefreshing: false,
+      permissionsStatus: {},
+      servicesStatus: {},
+      payload: {},
+    );
+    final tConfirmableAskState = ConfirmableAskPermissionsState(
+      isRefreshing: false,
+      permissionsStatus: {},
+      servicesStatus: {},
+      payload: {tPermission1},
+      isRestored: false,
+    );
+    const tAskedState = AskedPermissionsState(
+      isRefreshing: false,
+      permissionsStatus: {},
+      servicesStatus: {},
+      payload: {},
+      isCancelled: false,
+      isRequested: false,
+    );
 
-    group('canRequest', () {
-      test('Success: permission not already requested', () {
-        final state = _createState();
-
-        expect(state.canRequest({tPermission}), true);
-      });
-
-      test('Failed: permission in requesting', () {
-        final state = _createState(
-          places: {tPermission: PermissionPlace.requesting},
-        );
-
-        expect(state.canRequest({tPermission}), false);
-      });
-
-      test('Success: Permission already requested', () {
-        final state = _createState(
-          status: {tPermission: PermissionStatus.granted},
-        );
-
-        expect(state.canRequest({tPermission}), true);
-      });
+    testTheory<PermissionsBlocState, bool>('isWaiting', [
+      TheoryData(tCheckingState, false),
+      TheoryData(tCheckedState, false),
+      TheoryData(tAskingState, false),
+      TheoryData(tConfirmableAskState, true),
+      TheoryData(tAskedState, false),
+    ], (state) {
+      return state.isWaiting;
     });
 
-    group('checkEveryGranted', () {
+    testTheory<PermissionsBlocState, bool>('isLoading', [
+      TheoryData(tCheckingState, true),
+      TheoryData(tCheckedState, false),
+      TheoryData(tAskingState, true),
+      TheoryData(tConfirmableAskState, false),
+      TheoryData(tAskedState, false),
+    ], (state) {
+      return state.isLoading;
+    });
+
+    testTheory<PermissionsBlocState, bool>('checkCanCheck', [
+      TheoryData(tCheckingState, false),
+      TheoryData(tCheckedState, true),
+      TheoryData(tAskingState, false),
+      TheoryData(tConfirmableAskState, false),
+      TheoryData(tAskedState, true),
+    ], (state) {
+      return state.checkCanCheck({tPermission1});
+    });
+
+    testTheory<PermissionsBlocState, bool>('checkCanAsk', [
+      TheoryData(tCheckingState, false),
+      TheoryData(tCheckedState, true),
+      TheoryData(tAskingState, false),
+      TheoryData(tConfirmableAskState, false),
+      TheoryData(tAskedState, true),
+    ], (state) {
+      return state.checkCanAsk({tPermission1});
+    });
+
+    testTheory<PermissionsBlocState, bool>('checkCanConfirmAsk', [
+      TheoryData(tCheckingState, false),
+      TheoryData(tCheckedState, false),
+      TheoryData(tAskingState, false),
+      TheoryData(tConfirmableAskState, true),
+      TheoryData(tAskedState, false),
+    ], (state) {
+      return state.checkCanConfirmAsk({tPermission1});
+    });
+
+    group('resolveStatus', () {
       test('Failed: permission is not resolved', () {
         final state = _createState();
 
-        expect(state.checkEveryGranted({tPermission}), false);
+        expect(state.resolveStatus({tPermission1}), PermissionStatus.denied);
       });
 
       test('Failed: permission is denied', () {
         final state = _createState(
-          status: {tPermission: PermissionStatus.denied},
+          status: {tPermission1: PermissionStatus.denied},
         );
 
-        expect(state.checkEveryGranted({tPermission}), false);
+        expect(state.resolveStatus({tPermission1}), PermissionStatus.denied);
       });
 
       test('Success: because permission is granted', () {
         final state = _createState(
-          status: {tPermission: PermissionStatus.granted},
+          status: {tPermission1: PermissionStatus.permanentlyDenied},
         );
 
-        expect(state.checkEveryGranted({tPermission}), true);
+        expect(state.resolveStatus({tPermission1}), PermissionStatus.permanentlyDenied);
+      });
+
+      test('Success: because permission is granted', () {
+        final state = _createState(
+          status: {tPermission1: PermissionStatus.granted},
+        );
+
+        expect(state.resolveStatus({tPermission1}), PermissionStatus.granted);
       });
     });
 
-    group('checkAnyGranted', () {
-      test('Failed: permission is not resolved', () {
-        final state = _createState();
-
-        expect(state.checkAnyGranted({tPermission}), false);
-      });
-
-      test('Failed: permission is denied', () {
+    group('checkEvery', () {
+      test('if any permission is not present it returns false', () {
         final state = _createState(
-          status: {tPermission: PermissionStatus.denied},
+          status: {
+            tPermission2: PermissionStatus.granted,
+          },
         );
 
-        expect(state.checkAnyGranted({tPermission}), false);
+        expect(state.checkEvery(permissions, PermissionStatus.denied), false);
       });
 
-      test('Success: because permission is granted', () {
+      test('if any permission is denied  it returns true', () {
         final state = _createState(
-          status: {tPermission: PermissionStatus.granted},
+          status: {
+            tPermission1: PermissionStatus.denied,
+            tPermission2: PermissionStatus.granted,
+          },
         );
 
-        expect(state.checkAnyGranted({tPermission}), true);
+        expect(state.checkAny(permissions, PermissionStatus.denied), true);
+      });
+
+      test('if all permissions are granted it returns false', () {
+        final state = _createState(
+          status: {
+            tPermission1: PermissionStatus.granted,
+            tPermission2: PermissionStatus.granted,
+          },
+        );
+
+        expect(state.checkAny(permissions, PermissionStatus.denied), false);
+      });
+    });
+
+    group('checkAny', () {
+      test('if any permission is not present it returns true', () {
+        final state = _createState(
+          status: {
+            tPermission2: PermissionStatus.granted,
+          },
+        );
+
+        expect(state.checkAny(permissions, PermissionStatus.denied), true);
+      });
+
+      test('if any permission is denied it returns true', () {
+        final state = _createState(
+          status: {
+            tPermission1: PermissionStatus.denied,
+            tPermission2: PermissionStatus.granted,
+          },
+        );
+
+        expect(state.checkAny(permissions, PermissionStatus.denied), true);
+      });
+
+      test('if all permissions are granted it returns false', () {
+        final state = _createState(
+          status: {
+            tPermission1: PermissionStatus.granted,
+            tPermission2: PermissionStatus.granted,
+          },
+        );
+
+        expect(state.checkAny(permissions, PermissionStatus.denied), false);
       });
     });
   });
 }
 
 PermissionsBlocState _createState({
-  Map<Permission, PermissionPlace> places = const {},
   Map<Permission, PermissionStatus> status = const {},
+  Map<Service, bool> services = const {},
 }) {
-  return PermissionsBlocState(places: places, status: status);
+  return CheckedPermissionState(
+    isRefreshing: false,
+    permissionsStatus: status,
+    servicesStatus: services,
+    payload: {},
+  );
 }

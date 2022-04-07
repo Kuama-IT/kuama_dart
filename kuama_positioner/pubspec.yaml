@@ -16,7 +16,7 @@ dependencies:
   kuama_permissions:
     path: ../kuama_permissions
 
-#  shared_preferences: ^2.0.13
+
   geolocator: ^8.2.0
 
   get_it: # Version defined in kuama_core
