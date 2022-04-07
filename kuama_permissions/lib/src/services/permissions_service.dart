@@ -1,24 +1,25 @@
 import 'package:get_it/get_it.dart';
+import 'package:kuama_permissions/src/entities/permissions_status_entity.b.dart';
+import 'package:kuama_permissions/src/entities/service.dart';
 import 'package:kuama_permissions/src/failures.dart';
 import 'package:kuama_permissions/src/repositories/app_lifecycle_state_repository.dart';
 import 'package:kuama_permissions/src/repositories/permissions_manger_repository.dart';
 import 'package:kuama_permissions/src/repositories/permissions_preferences_repository.dart';
+import 'package:kuama_permissions/src/repositories/services_repository.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 import 'package:pure_extensions/pure_extensions.dart';
 
-/// It allows you to check the status, preferences of permissions and to update, request them
+/// It allows you to check the status or preferences of the permissions and to update or request them
 ///
 /// Flow:
-/// 1. Check permissions with [checkPermissions]
-/// 2. Ask the user if you can request permissions
-/// 3. Based on the user's response, execute:
-///   * Doesn't allow, call [addUnRequestPermissions] to save the permissions as un-request
-///   * Allow, you calls [requestPermissions] to request permissions from the user
+/// 1. Check permissions with [checkStatus]
+/// 2. Request the permissions with [requestPermissions]
 class PermissionsService {
   PermissionsPreferencesRepository get _preferences => GetIt.I();
   PermissionsManagerRepository get _handler => GetIt.I();
   AppLifecycleStateRepository get _appLifecycleState => GetIt.I();
+  ServicesRepository get _services => GetIt.I();
 
   /// Failures:
   /// - [FailedOpenAppPageFailure]
@@ -28,74 +29,73 @@ class PermissionsService {
     throw FailedOpenAppPageFailure(AppPage.settings);
   }
 
-  // TODO: Test and document in future release
-  Future<Map<Permission, bool>> checkService(List<Permission> permissions) async {
-    final results = await Future.wait(permissions.map((permission) async {
-      final result = await _handler.checkService(permission);
-      return MapEntry(permission, result);
-    }));
-    return results
-        .where((element) => element.value != ServiceStatus.notApplicable)
-        .map((e) => MapEntry(e.key, e.value == ServiceStatus.enabled))
-        .toMap();
+  /// Listen to a service status changes
+  Stream<bool> onServiceChanges(Service service) {
+    switch (service) {
+      case Service.location:
+        return _services.onPositionChanges;
+      case Service.bluetooth:
+        return _services.onBluetoothChanges;
+    }
   }
 
   /// Check permission status
   ///
-  /// Permission status:
-  /// - [PermissionStatus.granted] When permission is allowed
-  /// - [PermissionStatus.denied] When the user has already denied ask permission.
-  ///   You can call [requestPermissions]
-  /// - [PermissionStatus.permanentlyDenied] When the permit is denied forever. The user to enable
-  ///   the permission must do it externally from the app. For example use [openAppSettings]
-  Future<Map<Permission, PermissionStatus>> checkPermissions(List<Permission> permissions) async {
-    final preferencesPermissions = _preferences.check(permissions);
-    final results = await _handler.checkPermissions(permissions);
+  /// If the returned status is "disabled", enable it and check again before requesting
+  /// the permissions once more. (This is mandatory in Android)
+  Future<PermissionsStatusEntity> checkStatus(
+    List<Permission> permissions, {
+    bool tryAgain = false,
+  }) async {
+    final preferencesPermissions = _preferences.checkAsked(permissions);
+    final canAsk = preferencesPermissions.any((_, isAsked) => !isAsked);
 
-    final grantedPermissions = results
-        .where((key, value) => preferencesPermissions.containsKey(key) && value.isGranted)
-        .keys;
-    if (grantedPermissions.isNotEmpty) {
-      await _preferences.update(grantedPermissions.toList(), true);
-    }
+    var checkedPermissions = await _handler.checkPermissions(permissions);
 
-    final unRequestPermission = preferencesPermissions.where((_, canRequest) => !canRequest).keys;
+    final services = permissions.map((permission) => permission.toService()).whereNotNull();
+    final checkedServices = await _checkServices(services.toList());
 
-    return {
-      for (final permission in unRequestPermission) permission: PermissionStatus.denied,
-      ...results.where((_, status) => status.isGranted || status.isPermanentlyDenied),
-    };
+    final isAllGranted = checkedPermissions.every((_, status) => status.isGranted);
+    final isAllEnabled = checkedServices.every((_, status) => status);
+
+    return PermissionsStatusEntity(
+      canAsk: canAsk || tryAgain,
+      areAllGrantedAndEnabled: isAllGranted && isAllEnabled,
+      permissions: checkedPermissions,
+      services: checkedServices,
+    );
   }
 
-  /// All [permissions] will be saved in the user's preferences as not requestable
-  Future<void> addUnRequestPermissions(List<Permission> permissions) async {
-    await _preferences.update(permissions, false);
+  /// Mark [permissions] as "not requestable"
+  Future<void> markAskedPermissions(List<Permission> permissions) async {
+    await _preferences.markAsked(permissions);
   }
 
-  /// Requests permissions
-  ///
-  /// All [permissions] will be saved in the user's preferences as requestable and if some
-  /// permissions have been denied, they will be updated as not requestable
+  /// Requests [permissions] and mark them as "not requestable"
   Future<Map<Permission, PermissionStatus>> requestPermissions(List<Permission> permissions) async {
-    await _preferences.update(permissions, true);
+    await _preferences.markAsked(permissions);
 
-    final result = await _handler.requestPermissions(permissions);
-
-    final deniedPermissions = result
-        .where((permission, status) {
-          return status.isDenied || status.isPermanentlyDenied;
-        })
-        .keys
-        .toList();
-
-    await _preferences.update(deniedPermissions, false);
-
-    return result;
+    return await _handler.requestPermissions(permissions);
   }
 
-  Stream<void> get onRequiredPermissionsRefresh {
-    return _appLifecycleState.onChanges
-        .distinct()
-        .where((event) => event == AppLifecycleState.resumed);
+  Stream<void> get onRequiredPermissionsRefresh async* {
+    AppLifecycleState prevState = AppLifecycleState.paused;
+    await for (final state in _appLifecycleState.onChanges) {
+      if (prevState == AppLifecycleState.paused && state == AppLifecycleState.resumed) {
+        yield null;
+      }
+      prevState = state;
+    }
+  }
+
+  Future<Map<Service, bool>> _checkServices(List<Service> services) async {
+    final results = await Future.wait(services.map((service) async {
+      final result = await _handler.checkService(service.toPermission());
+      return MapEntry(service, result);
+    }));
+    return results.map((e) {
+      assert(e.value != ServiceStatus.notApplicable, '`${e.key}` not has applicable service');
+      return MapEntry(e.key, e.value == ServiceStatus.enabled);
+    }).toMap();
   }
 }

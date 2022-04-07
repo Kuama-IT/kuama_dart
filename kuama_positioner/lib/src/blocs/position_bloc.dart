@@ -32,7 +32,7 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
     required this.permissionBloc,
   }) : super(PositionBlocIdle(
           lastPosition: lastPosition,
-          hasPermission: permissionBloc.state.checkAnyGranted(_permissions),
+          hasPermission: permissionBloc.state.checkAny(_permissions, PermissionStatus.granted),
           isServiceEnabled: false,
         )) {
     on<PositionBlocEvent>(
@@ -57,7 +57,7 @@ class PositionBloc extends Bloc<PositionBlocEvent, PositionBlocState> {
 
   Stream<PositionBlocState> mapEventToState(PositionBlocEvent event) {
     if (event is _PermissionUpdatePositionBloc) {
-      final hasPermission = event.state.checkAnyGranted(_permissions);
+      final hasPermission = event.state.checkAny(_permissions, PermissionStatus.granted);
       if (state.hasPermission == hasPermission) return const Stream.empty();
       return _mapPermissionAndServiceUpdates(hasPermission, state.isServiceEnabled);
     }

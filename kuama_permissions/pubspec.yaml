@@ -17,9 +17,11 @@ dependencies:
   permission_handler: ^9.2.0
   shared_preferences: ^2.0.13
 
+  meta: # Version defined in kuama_core
   get_it: # Version defined in kuama_core
   pure_extensions: ^4.1.1
   bloc: ^8.0.3
+  bloc_concurrency: ^0.2.0
 
   mek_data_class: ^0.1.0
 
@@ -35,7 +37,10 @@ dev_dependencies:
   # flutter packages pub run build_runner build --delete-conflicting-outputs
   # flutter packages pub run build_runner watch --delete-conflicting-outputs
   build_runner: ^2.1.8
-  mek_data_class_generator: ^0.1.0
+  mek_data_class_generator: ^0.1.1
+
+dependency_overrides:
+  test_api: 0.4.9
 
 index_generator:
   exclude:
@@ -51,3 +56,4 @@ index_generator:
           show:
             - Permission
             - PermissionStatus
+            - PermissionStatusGetters
