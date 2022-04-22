@@ -13,15 +13,19 @@ import '../t_utils.dart';
 
 class _MockPermissionsService extends Mock implements PermissionsService {}
 
+class _MockPermissionsState extends Mock implements PermissionsBlocState {}
+
 void main() {
   late StreamController<void> _onRequiredPermissionsRefresh;
   late _MockPermissionsService _mockPermissionsService;
+  late _MockPermissionsState _mockState;
 
   late PermissionsBloc bloc;
 
   setUp(() {
     GetIt.instance
         .registerSingleton<PermissionsService>(_mockPermissionsService = _MockPermissionsService());
+    _mockState = _MockPermissionsState();
 
     _onRequiredPermissionsRefresh = StreamController.broadcast(sync: true);
 
@@ -43,13 +47,11 @@ void main() {
     const tService = Service.location;
 
     group('PermissionsBloc.check', () {
-      test('cant check nothing because state cant operate', () {
-        bloc.emit(bloc.state.toConfirmableAsk(
-          payload: {Permission.calendar},
-          permissionsStatus: {Permission.calendar: PermissionStatus.denied},
-          isRestored: false,
-        ));
+      test('cant check because cant operate', () {
+        bloc.emit(_mockState);
         var state = bloc.state;
+
+        when(() => _mockState.checkCanCheck(any())).thenReturn(false);
 
         bloc.check({Permission.calendar});
 
@@ -118,7 +120,59 @@ void main() {
       });
     });
 
+    group('PermissionsBloc.request', () {
+      test('cant request because cant operate', () {
+        bloc.emit(_mockState);
+        var state = bloc.state;
+
+        when(() => _mockState.checkCanRequest(any())).thenReturn(false);
+
+        bloc.request({Permission.calendar});
+
+        expect(bloc.state, state);
+      });
+
+      test('Request permissions', () async {
+        var state = bloc.state;
+
+        when(() => _mockPermissionsService.requestPermissions(any())).thenAnswer((_) async {
+          return PermissionsStatusEntity(
+            canAsk: true,
+            areAllGrantedAndEnabled: true,
+            permissions: {tPermission1: PermissionStatus.granted},
+            services: {},
+          );
+        });
+
+        after(() => bloc.request({tPermission1}));
+
+        await expectLater(
+          bloc.stream,
+          emitsInOrder([
+            state = state.toRequesting(
+              payload: {tPermission1},
+            ),
+            state = state.toRequested(
+              payload: {tPermission1},
+              permissionsStatus: {tPermission1: PermissionStatus.granted},
+            ),
+          ]),
+        );
+      });
+    });
+
     group('PermissionsBloc.confirmAsk', () {
+      test('cant confirm ask because cant operate', () {
+        bloc.emit(_mockState);
+        var state = bloc.state;
+
+        when(() => _mockState.checkCanConfirmAsk(any())).thenReturn(false);
+
+        bloc.confirmAsk(true);
+
+        expect(bloc.state, state);
+      });
+
       test('permissions is asked', () async {
         bloc.emit(bloc.state.toConfirmableAsk(
           payload: {tPermission1},
@@ -127,7 +181,12 @@ void main() {
         var state = bloc.state;
 
         when(() => _mockPermissionsService.requestPermissions(any())).thenAnswer((_) async {
-          return {tPermission1: PermissionStatus.granted};
+          return PermissionsStatusEntity(
+            canAsk: false,
+            areAllGrantedAndEnabled: true,
+            permissions: {tPermission1: PermissionStatus.granted},
+            services: {},
+          );
         });
 
         after(() => bloc.confirmAsk(true));
@@ -201,6 +260,17 @@ void main() {
     });
 
     group('PermissionsBloc.ask', () {
+      test('cant ask because cant operate', () {
+        bloc.emit(_mockState);
+        var state = bloc.state;
+
+        when(() => _mockState.checkCanAsk(any())).thenReturn(false);
+
+        bloc.ask({Permission.calendar});
+
+        expect(bloc.state, state);
+      });
+
       test('skip check because permissions is already asked', () async {
         var state = bloc.state;
 

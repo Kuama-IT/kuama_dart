@@ -20,27 +20,45 @@ abstract class PermissionsBlocState with _$PermissionsBlocState {
 
   bool get isWaiting => this is ConfirmableAskPermissionsState;
 
-  bool get isLoading {
-    return maybeMap(checking: (_) => true, asking: (_) => true, orElse: (_) => false);
-  }
+  bool get isLoading;
 
-  /// Referred to [PermissionsBloc.check]
+  /// Returns whether [PermissionsBloc.check] is performable.
+  ///
+  /// It returns `false` when another action is in progress or the state is [ConfirmableAskPermissionsState].
+  /// Returns whether no actions are in progress or the state isn’t [ConfirmableAskPermissionsState].
   bool checkCanCheck(Set<Permission> permissions) {
     if (isLoading || isRefreshing || isWaiting) return false;
     return !permissions.every(permissionsStatus.containsKey);
   }
 
-  /// Referred to [PermissionsBloc.ask]
-  bool checkCanAsk(Set<Permission> permissions) {
+  /// Returns whether [PermissionsBloc.request] is performable.
+  ///
+  /// Returns whether no actions are in progress or the state isn’t [ConfirmableAskPermissionsState].
+  bool checkCanRequest(Set<Permission> permissions) {
     if (isLoading || isRefreshing || isWaiting) return false;
-    return true;
+    return permissions.any((permission) {
+      return permissionsStatus[permission] != PermissionStatus.granted;
+    });
   }
 
-  /// Referred to [PermissionsBloc.confirmAsk]
+  /// Returns whether [PermissionsBloc.ask] is performable.
+  ///
+  /// Returns whether no actions are in progress or the state isn’t [ConfirmableAskPermissionsState].
+  bool checkCanAsk(Set<Permission> permissions) {
+    if (isLoading || isRefreshing || isWaiting) return false;
+    return permissions.any((permission) {
+      return permissionsStatus[permission] != PermissionStatus.granted;
+    });
+  }
+
+  /// Returns whether [PermissionsBloc.confirmAsk] is performable.
+  ///
+  /// Returns whether the state is [ConfirmableAskPermissionsState].
   bool checkCanConfirmAsk(Set<Permission> permissions) {
     if (isLoading || isRefreshing) return false;
     return maybeMap(
-      asked: (state) => const UnorderedIterableEquality().equals(state.payload, permissions),
+      confirmableAsk: (state) =>
+          const UnorderedIterableEquality().equals(state.payload, permissions),
       orElse: (_) => false,
     );
   }
@@ -70,39 +88,31 @@ abstract class PermissionsBlocState with _$PermissionsBlocState {
   R map<R>({
     required R Function(CheckingPermissionState state) checking,
     required R Function(CheckedPermissionState state) checked,
+    required R Function(RequestingPermissionsState state) requesting,
+    required R Function(RequestedPermissionsState state) requested,
     required R Function(AskingPermissionsState state) asking,
-    required R Function(ConfirmableAskPermissionsState state) negatedAsk,
+    required R Function(ConfirmableAskPermissionsState state) confirmableAsk,
     required R Function(AskedPermissionsState state) asked,
-  }) {
-    final state = this;
-    if (state is CheckingPermissionState) {
-      return checking(state);
-    } else if (state is CheckedPermissionState) {
-      return checked(state);
-    } else if (state is AskingPermissionsState) {
-      return asking(state);
-    } else if (state is ConfirmableAskPermissionsState) {
-      return negatedAsk(state);
-    } else if (state is AskedPermissionsState) {
-      return asked(state);
-    }
-    throw 'Not supported ${state.runtimeType}';
-  }
+  });
 
   R maybeMap<R>({
     R Function(CheckingPermissionState state)? checking,
     R Function(CheckedPermissionState state)? checked,
+    R Function(RequestingPermissionsState state)? requesting,
+    R Function(RequestedPermissionsState state)? requested,
     R Function(AskingPermissionsState state)? asking,
-    R Function(ConfirmableAskPermissionsState state)? asked,
-    R Function(AskedPermissionsState state)? requested,
+    R Function(ConfirmableAskPermissionsState state)? confirmableAsk,
+    R Function(AskedPermissionsState state)? asked,
     required R Function(PermissionsBlocState state) orElse,
   }) {
     return map(
       checking: checking ?? orElse,
       checked: checked ?? orElse,
+      requesting: requesting ?? orElse,
+      requested: requested ?? orElse,
       asking: asking ?? orElse,
-      negatedAsk: asked ?? orElse,
-      asked: requested ?? orElse,
+      confirmableAsk: confirmableAsk ?? orElse,
+      asked: asked ?? orElse,
     );
   }
 
@@ -127,6 +137,34 @@ abstract class PermissionsBlocState with _$PermissionsBlocState {
     required Set<Permission> payload,
   }) {
     return CheckedPermissionState(
+      isRefreshing: false,
+      permissionsStatus: permissionsStatus ?? this.permissionsStatus,
+      servicesStatus: servicesStatus ?? this.servicesStatus,
+      payload: payload,
+    );
+  }
+
+  @visibleForTesting
+  PermissionsBlocState toRequesting({
+    Map<Permission, PermissionStatus>? permissionsStatus,
+    Map<Service, bool>? servicesStatus,
+    required Set<Permission> payload,
+  }) {
+    return RequestingPermissionsState(
+      isRefreshing: false,
+      permissionsStatus: permissionsStatus ?? this.permissionsStatus,
+      servicesStatus: servicesStatus ?? this.servicesStatus,
+      payload: payload,
+    );
+  }
+
+  @visibleForTesting
+  PermissionsBlocState toRequested({
+    Map<Permission, PermissionStatus>? permissionsStatus,
+    Map<Service, bool>? servicesStatus,
+    required Set<Permission> payload,
+  }) {
+    return RequestedPermissionsState(
       isRefreshing: false,
       permissionsStatus: permissionsStatus ?? this.permissionsStatus,
       servicesStatus: servicesStatus ?? this.servicesStatus,
@@ -197,6 +235,22 @@ class CheckingPermissionState extends PermissionsBlocState with _$CheckingPermis
           permissionsStatus: permissionsStatus,
           servicesStatus: servicesStatus,
         );
+
+  @override
+  bool get isLoading => true;
+
+  @override
+  R map<R>({
+    required R Function(CheckingPermissionState state) checking,
+    required R Function(CheckedPermissionState state) checked,
+    required R Function(RequestingPermissionsState state) requesting,
+    required R Function(RequestedPermissionsState state) requested,
+    required R Function(AskingPermissionsState state) asking,
+    required R Function(ConfirmableAskPermissionsState state) confirmableAsk,
+    required R Function(AskedPermissionsState state) asked,
+  }) {
+    return checking(this);
+  }
 }
 
 @DataClass(copyable: true)
@@ -213,6 +267,86 @@ class CheckedPermissionState extends PermissionsBlocState with _$CheckedPermissi
           permissionsStatus: permissionsStatus,
           servicesStatus: servicesStatus,
         );
+
+  @override
+  bool get isLoading => false;
+
+  @override
+  R map<R>({
+    required R Function(CheckingPermissionState state) checking,
+    required R Function(CheckedPermissionState state) checked,
+    required R Function(RequestingPermissionsState state) requesting,
+    required R Function(RequestedPermissionsState state) requested,
+    required R Function(AskingPermissionsState state) asking,
+    required R Function(ConfirmableAskPermissionsState state) confirmableAsk,
+    required R Function(AskedPermissionsState state) asked,
+  }) {
+    return checked(this);
+  }
+}
+
+@DataClass(copyable: true)
+class RequestingPermissionsState extends PermissionsBlocState with _$RequestingPermissionsState {
+  final Set<Permission> payload;
+
+  const RequestingPermissionsState({
+    required bool isRefreshing,
+    required Map<Permission, PermissionStatus> permissionsStatus,
+    required Map<Service, bool> servicesStatus,
+    required this.payload,
+  }) : super(
+          isRefreshing: isRefreshing,
+          permissionsStatus: permissionsStatus,
+          servicesStatus: servicesStatus,
+        );
+
+  @override
+  bool get isLoading => true;
+
+  @override
+  R map<R>({
+    required R Function(CheckingPermissionState state) checking,
+    required R Function(CheckedPermissionState state) checked,
+    required R Function(RequestingPermissionsState state) requesting,
+    required R Function(RequestedPermissionsState state) requested,
+    required R Function(AskingPermissionsState state) asking,
+    required R Function(ConfirmableAskPermissionsState state) confirmableAsk,
+    required R Function(AskedPermissionsState state) asked,
+  }) {
+    return requesting(this);
+  }
+}
+
+@DataClass(copyable: true)
+class RequestedPermissionsState extends PermissionsBlocState with _$RequestedPermissionsState {
+  final Set<Permission> payload;
+
+  const RequestedPermissionsState({
+    required bool isRefreshing,
+    required Map<Permission, PermissionStatus> permissionsStatus,
+    required Map<Service, bool> servicesStatus,
+    required this.payload,
+  }) : super(
+          isRefreshing: isRefreshing,
+          permissionsStatus: permissionsStatus,
+          servicesStatus: servicesStatus,
+        );
+
+  @override
+  bool get isLoading => false;
+
+  @override
+  R map<R>({
+    required R Function(CheckingPermissionState state) checking,
+    required R Function(CheckedPermissionState state) checked,
+    required R Function(RequestingPermissionsState state) requesting,
+    required R Function(RequestedPermissionsState state) requested,
+    required R Function(AskingPermissionsState state) asking,
+    required R Function(ConfirmableAskPermissionsState state) confirmableAsk,
+    required R Function(AskedPermissionsState state) asked,
+  }) {
+    return requested(this);
+  }
 }
 
 @DataClass(copyable: true)
@@ -229,6 +363,22 @@ class AskingPermissionsState extends PermissionsBlocState with _$AskingPermissio
           permissionsStatus: permissionsStatus,
           servicesStatus: servicesStatus,
         );
+
+  @override
+  bool get isLoading => true;
+
+  @override
+  R map<R>({
+    required R Function(CheckingPermissionState state) checking,
+    required R Function(CheckedPermissionState state) checked,
+    required R Function(RequestingPermissionsState state) requesting,
+    required R Function(RequestedPermissionsState state) requested,
+    required R Function(AskingPermissionsState state) asking,
+    required R Function(ConfirmableAskPermissionsState state) confirmableAsk,
+    required R Function(AskedPermissionsState state) asked,
+  }) {
+    return asking(this);
+  }
 }
 
 @DataClass(copyable: true)
@@ -250,6 +400,22 @@ class ConfirmableAskPermissionsState extends PermissionsBlocState
           permissionsStatus: permissionsStatus,
           servicesStatus: servicesStatus,
         );
+
+  @override
+  bool get isLoading => false;
+
+  @override
+  R map<R>({
+    required R Function(CheckingPermissionState state) checking,
+    required R Function(CheckedPermissionState state) checked,
+    required R Function(RequestingPermissionsState state) requesting,
+    required R Function(RequestedPermissionsState state) requested,
+    required R Function(AskingPermissionsState state) asking,
+    required R Function(ConfirmableAskPermissionsState state) confirmableAsk,
+    required R Function(AskedPermissionsState state) asked,
+  }) {
+    return confirmableAsk(this);
+  }
 }
 
 @DataClass(copyable: true)
@@ -273,4 +439,20 @@ class AskedPermissionsState extends PermissionsBlocState with _$AskedPermissions
           permissionsStatus: permissionsStatus,
           servicesStatus: servicesStatus,
         );
+
+  @override
+  bool get isLoading => false;
+
+  @override
+  R map<R>({
+    required R Function(CheckingPermissionState state) checking,
+    required R Function(CheckedPermissionState state) checked,
+    required R Function(RequestingPermissionsState state) requesting,
+    required R Function(RequestedPermissionsState state) requested,
+    required R Function(AskingPermissionsState state) asking,
+    required R Function(ConfirmableAskPermissionsState state) confirmableAsk,
+    required R Function(AskedPermissionsState state) asked,
+  }) {
+    return asked(this);
+  }
 }
