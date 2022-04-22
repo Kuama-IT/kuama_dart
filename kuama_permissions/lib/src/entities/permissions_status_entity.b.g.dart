@@ -28,7 +28,7 @@ mixin _$PermissionsStatusEntity {
 
   String toString() => (ClassToString('PermissionsStatusEntity')
         ..add('canAsk', _self.canAsk)
-        ..add('isAllGrantedAndEnabled', _self.areAllGrantedAndEnabled)
+        ..add('areAllGrantedAndEnabled', _self.areAllGrantedAndEnabled)
         ..add('permissions', _self.permissions)
         ..add('services', _self.services))
       .toString();

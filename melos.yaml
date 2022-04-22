@@ -18,7 +18,11 @@ scripts:
     run: |
       melos exec -- "flutter clean"
       melos exec -- "flutter pub get"
-
+      
+  upgrade:
+    description: Update your git dependecies to last
+    run: melos exec -- "flutter pub upgrade kuama_flutter"
+      
   format:
     description: Analyze code format
     run: >

@@ -9,7 +9,6 @@ import 'package:kuama_permissions/src/services/permissions_service.dart';
 import 'package:mek_data_class/mek_data_class.dart';
 import 'package:meta/meta.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:pure_extensions/pure_extensions.dart';
 import 'package:rxdart/rxdart.dart';
 
 part '_permissions_event.dart';
@@ -22,6 +21,7 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
   StreamSubscription<void>? _refreshPermissionsSub;
   final _servicesSubs = CompositeSubscription();
 
+  /// You should have only one instance of this class within the app
   PermissionsBloc()
       : super(const CheckedPermissionState(
           isRefreshing: false,
@@ -39,20 +39,23 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
 
   /// Check permissions status.
   ///
-  /// You cannot perform this action on a [ConfirmableAskPermissionsState]
+  /// Whether [PermissionsBlocState.checkCanCheck] this action is performable.
   ///
   /// While processing the actions, [CheckingPermissionState] is emitted.
-  /// Once the action is completed, update both permissions and services status to [permissions] and emits [CheckedPermissionState].
-  ///
-  /// Extra: You can check if you can perform this method with [PermissionsBlocState.checkCanCheck].
+  /// Once the action is completed, permissions and services status are update to [permissions] and [CheckedPermissionState] is emitted.
   void check(Set<Permission> permissions) => add(_CheckPermissionsEvent(permissions));
 
-  // TODO: Implement request permissions without need ask before request it
-  // void request(Set<Permission> permissions);
+  /// Request permissions status.
+  ///
+  /// Whether [PermissionsBlocState.checkCanRequest] this action is performable.
+  ///
+  /// While processing the actions, [RequestingPermissionsState] is emitted.
+  /// Once the action is completed, permissions and services status are update to [permissions] and [RequestedPermissionsState] is emitted.
+  void request(Set<Permission> permissions) => add(_RequestPermissionsEvent(permissions));
 
   /// Asks permissions.
   ///
-  /// You cannot perform this action on a [ConfirmableAskPermissionsState]
+  /// Whether [PermissionsBlocState.checkCanAsk] this action is performable.
   ///
   /// While processing the actions, [AskingPermissionsState] is emitted.
   ///
@@ -63,14 +66,12 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
   /// that can be confirmed with [confirmAsk].
   ///
   /// If the permissions have already been requested once, use [tryAgain] to request them again.
-  ///
-  /// Extra: You can check if you can perform this method with [PermissionsBlocState.checkCanAsk]
   void ask(Set<Permission> permissions, {bool tryAgain = false}) =>
       add(_AskPermissionsEvent(permissions, tryAgain: tryAgain));
 
   /// Resolves ask permission
   ///
-  /// You cannot perform this action on a [ConfirmableAskPermissionsState]
+  /// Whether [PermissionsBlocState.checkCanConfirmAsk] this action is performable.
   ///
   /// If the request is canceled, it emits [AskedPermissionsState.isCancelled] to `true`.
   ///
@@ -86,21 +87,20 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
   /// If `null`, the request is discarded.
   ///
   /// Note: The confirmation may be completed after a refresh. See [PermissionsBlocState.isRefreshing].
-  ///
-  /// Extra: You can check if you can perform this method with [PermissionsBlocState.checkCanConfirmAsk].
   void confirmAsk(bool? canRequest) => add(_ConfirmAskPermissionsEvent(canRequest));
 
   Future<void> _onEvent(_PermissionsBlocEvent event, Emitter<PermissionsBlocState> emit) async {
-    if (event is _CheckPermissionsEvent) {
-      return await _onCheck(emit, event.permissions);
-    } else if (event is _AskPermissionsEvent) {
-      return await _onAsk(emit, event.permissions, tryAgain: event.tryAgain);
-    } else if (event is _ConfirmAskPermissionsEvent) {
-      return await _onConfirmAsk(emit, event.canRequest);
-    } else if (event is _RefreshPermissionsEvent) {
-      return await _onRefresh(emit);
-    }
-    throw 'Not supported ${event.runtimeType}';
+    return event.map<Future<void>>(check: (event) {
+      return _onCheck(emit, event.permissions);
+    }, request: (event) {
+      return _onRequest(emit, event.permissions);
+    }, ask: (event) {
+      return _onAsk(emit, event.permissions, tryAgain: event.tryAgain);
+    }, confirmAsk: (event) {
+      return _onConfirmAsk(emit, event.canRequest);
+    }, refresh: (event) {
+      return _onRefresh(emit);
+    });
   }
 
   Future<void> _onCheck(Emitter<PermissionsBlocState> emit, Set<Permission> permissions) async {
@@ -126,6 +126,22 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
       payload: permissions,
       permissionsStatus: {...state.permissionsStatus, ...permissionsStatus},
       servicesStatus: {...state.servicesStatus, ...servicesStatus},
+    ));
+  }
+
+  Future<void> _onRequest(Emitter<PermissionsBlocState> emit, Set<Permission> permissions) async {
+    if (permissions.isEmpty || !state.checkCanRequest(permissions)) return;
+
+    emit(state.toRequesting(
+      payload: permissions,
+    ));
+
+    final status = await _service.requestPermissions(permissions.toList());
+
+    emit(state.toRequested(
+      payload: permissions,
+      permissionsStatus: {...state.permissionsStatus, ...status.permissions},
+      servicesStatus: {...state.servicesStatus, ...status.services},
     ));
   }
 
@@ -207,18 +223,20 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
     Emitter<PermissionsBlocState> emit,
     Set<Permission> permissions,
   ) async {
-    final permissionStatus = await _service.requestPermissions(permissions.toList());
+    final status = await _service.requestPermissions(permissions.toList());
 
-    if (permissionStatus.every((_, value) => value.isGranted)) {
+    if (status.areAllGrantedAndEnabled) {
       emit(state.toAsked(
         payload: permissions,
-        permissionsStatus: {...state.permissionsStatus, ...permissionStatus},
+        permissionsStatus: {...state.permissionsStatus, ...status.permissions},
+        servicesStatus: {...state.servicesStatus, ...status.services},
         isCancelled: false,
         isRequested: true,
       ));
     } else {
       emit(state.toConfirmableAsk(
-        permissionsStatus: {...state.permissionsStatus, ...permissionStatus},
+        permissionsStatus: {...state.permissionsStatus, ...status.permissions},
+        servicesStatus: {...state.servicesStatus, ...status.services},
         isRestored: true,
         payload: permissions,
       ));
@@ -245,7 +263,7 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
 
     var state = this.state;
 
-    final allPermissions = state.maybeMap(asked: (state) {
+    final allPermissions = state.maybeMap(confirmableAsk: (state) {
       return [...state.permissionsStatus.keys, ...state.payload];
     }, orElse: (state) {
       return state.permissionsStatus.keys.toList();

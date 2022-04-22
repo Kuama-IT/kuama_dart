@@ -72,7 +72,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     final state = ref.watch(permissionBloc);
     final positionState = ref.watch(positionBloc);
 
-    final askingPermissions = state.maybeMap(asked: (state) {
+    final askingPermissions = state.maybeMap(confirmableAsk: (state) {
       return state.payload.toSet();
     }, orElse: (_) {
       return const <Permission>{};

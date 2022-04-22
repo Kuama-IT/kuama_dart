@@ -15,6 +15,13 @@ mixin _$_CheckPermissionsEvent {
       (ClassToString('_CheckPermissionsEvent')..add('permissions', _self.permissions)).toString();
 }
 
+mixin _$_RequestPermissionsEvent {
+  _RequestPermissionsEvent get _self => this as _RequestPermissionsEvent;
+
+  String toString() =>
+      (ClassToString('_RequestPermissionsEvent')..add('permissions', _self.permissions)).toString();
+}
+
 mixin _$_AskPermissionsEvent {
   _AskPermissionsEvent get _self => this as _AskPermissionsEvent;
 
@@ -140,6 +147,86 @@ mixin _$CheckedPermissionState {
     Set<Permission>? payload,
   }) {
     return CheckedPermissionState(
+      isRefreshing: isRefreshing ?? _self.isRefreshing,
+      permissionsStatus: permissionsStatus ?? _self.permissionsStatus,
+      servicesStatus: servicesStatus ?? _self.servicesStatus,
+      payload: payload ?? _self.payload,
+    );
+  }
+}
+
+mixin _$RequestingPermissionsState {
+  RequestingPermissionsState get _self => this as RequestingPermissionsState;
+
+  Iterable<Object?> get _props sync* {
+    yield _self.isRefreshing;
+    yield _self.permissionsStatus;
+    yield _self.servicesStatus;
+    yield _self.payload;
+  }
+
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _$RequestingPermissionsState &&
+          runtimeType == other.runtimeType &&
+          DataClass.$equals(_props, other._props);
+
+  int get hashCode => Object.hashAll(_props);
+
+  String toString() => (ClassToString('RequestingPermissionsState')
+        ..add('isRefreshing', _self.isRefreshing)
+        ..add('permissionsStatus', _self.permissionsStatus)
+        ..add('servicesStatus', _self.servicesStatus)
+        ..add('payload', _self.payload))
+      .toString();
+
+  RequestingPermissionsState copyWith({
+    bool? isRefreshing,
+    Map<Permission, PermissionStatus>? permissionsStatus,
+    Map<Service, bool>? servicesStatus,
+    Set<Permission>? payload,
+  }) {
+    return RequestingPermissionsState(
+      isRefreshing: isRefreshing ?? _self.isRefreshing,
+      permissionsStatus: permissionsStatus ?? _self.permissionsStatus,
+      servicesStatus: servicesStatus ?? _self.servicesStatus,
+      payload: payload ?? _self.payload,
+    );
+  }
+}
+
+mixin _$RequestedPermissionsState {
+  RequestedPermissionsState get _self => this as RequestedPermissionsState;
+
+  Iterable<Object?> get _props sync* {
+    yield _self.isRefreshing;
+    yield _self.permissionsStatus;
+    yield _self.servicesStatus;
+    yield _self.payload;
+  }
+
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _$RequestedPermissionsState &&
+          runtimeType == other.runtimeType &&
+          DataClass.$equals(_props, other._props);
+
+  int get hashCode => Object.hashAll(_props);
+
+  String toString() => (ClassToString('RequestedPermissionsState')
+        ..add('isRefreshing', _self.isRefreshing)
+        ..add('permissionsStatus', _self.permissionsStatus)
+        ..add('servicesStatus', _self.servicesStatus)
+        ..add('payload', _self.payload))
+      .toString();
+
+  RequestedPermissionsState copyWith({
+    bool? isRefreshing,
+    Map<Permission, PermissionStatus>? permissionsStatus,
+    Map<Service, bool>? servicesStatus,
+    Set<Permission>? payload,
+  }) {
+    return RequestedPermissionsState(
       isRefreshing: isRefreshing ?? _self.isRefreshing,
       permissionsStatus: permissionsStatus ?? _self.permissionsStatus,
       servicesStatus: servicesStatus ?? _self.servicesStatus,

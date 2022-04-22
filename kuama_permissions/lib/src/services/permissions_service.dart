@@ -50,17 +50,13 @@ class PermissionsService {
     final preferencesPermissions = _preferences.checkAsked(permissions);
     final canAsk = preferencesPermissions.any((_, isAsked) => !isAsked);
 
-    var checkedPermissions = await _handler.checkPermissions(permissions);
+    final checkedPermissions = await _handler.checkPermissions(permissions);
 
-    final services = permissions.map((permission) => permission.toService()).whereNotNull();
-    final checkedServices = await _checkServices(services.toList());
-
-    final isAllGranted = checkedPermissions.every((_, status) => status.isGranted);
-    final isAllEnabled = checkedServices.every((_, status) => status);
+    final checkedServices = await _checkServices(permissions);
 
     return PermissionsStatusEntity(
       canAsk: canAsk || tryAgain,
-      areAllGrantedAndEnabled: isAllGranted && isAllEnabled,
+      areAllGrantedAndEnabled: _checkAllGrantedAndEnabled(checkedPermissions, checkedServices),
       permissions: checkedPermissions,
       services: checkedServices,
     );
@@ -72,10 +68,19 @@ class PermissionsService {
   }
 
   /// Requests [permissions] and mark them as "not requestable"
-  Future<Map<Permission, PermissionStatus>> requestPermissions(List<Permission> permissions) async {
+  Future<PermissionsStatusEntity> requestPermissions(List<Permission> permissions) async {
     await _preferences.markAsked(permissions);
 
-    return await _handler.requestPermissions(permissions);
+    final requestedPermissions = await _handler.requestPermissions(permissions);
+
+    final checkedServices = await _checkServices(permissions);
+
+    return PermissionsStatusEntity(
+      canAsk: false,
+      areAllGrantedAndEnabled: _checkAllGrantedAndEnabled(requestedPermissions, checkedServices),
+      permissions: requestedPermissions,
+      services: checkedServices,
+    );
   }
 
   Stream<void> get onRequiredPermissionsRefresh async* {
@@ -88,11 +93,24 @@ class PermissionsService {
     }
   }
 
-  Future<Map<Service, bool>> _checkServices(List<Service> services) async {
+  bool _checkAllGrantedAndEnabled(
+    Map<Permission, PermissionStatus> permissions,
+    Map<Service, bool> services,
+  ) {
+    final isAllGranted = permissions.every((_, status) => status.isGranted);
+    final isAllEnabled = services.every((_, isEnabled) => isEnabled);
+
+    return isAllGranted && isAllEnabled;
+  }
+
+  Future<Map<Service, bool>> _checkServices(List<Permission> permissions) async {
+    final services = permissions.map((permission) => permission.toService()).whereNotNull();
+
     final results = await Future.wait(services.map((service) async {
       final result = await _handler.checkService(service.toPermission());
       return MapEntry(service, result);
     }));
+
     return results.map((e) {
       assert(e.value != ServiceStatus.notApplicable, '`${e.key}` not has applicable service');
       return MapEntry(e.key, e.value == ServiceStatus.enabled);

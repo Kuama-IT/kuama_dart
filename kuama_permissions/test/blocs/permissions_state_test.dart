@@ -28,6 +28,18 @@ void main() {
       servicesStatus: {},
       payload: {},
     );
+    const tRequestingState = RequestingPermissionsState(
+      isRefreshing: false,
+      permissionsStatus: {},
+      servicesStatus: {},
+      payload: {},
+    );
+    const tRequestedState = RequestedPermissionsState(
+      isRefreshing: false,
+      permissionsStatus: {},
+      servicesStatus: {},
+      payload: {},
+    );
     final tConfirmableAskState = ConfirmableAskPermissionsState(
       isRefreshing: false,
       permissionsStatus: {},
@@ -47,6 +59,8 @@ void main() {
     testTheory<PermissionsBlocState, bool>('isWaiting', [
       TheoryData(tCheckingState, false),
       TheoryData(tCheckedState, false),
+      TheoryData(tRequestingState, false),
+      TheoryData(tRequestedState, false),
       TheoryData(tAskingState, false),
       TheoryData(tConfirmableAskState, true),
       TheoryData(tAskedState, false),
@@ -57,6 +71,8 @@ void main() {
     testTheory<PermissionsBlocState, bool>('isLoading', [
       TheoryData(tCheckingState, true),
       TheoryData(tCheckedState, false),
+      TheoryData(tRequestingState, true),
+      TheoryData(tRequestedState, false),
       TheoryData(tAskingState, true),
       TheoryData(tConfirmableAskState, false),
       TheoryData(tAskedState, false),
@@ -67,6 +83,8 @@ void main() {
     testTheory<PermissionsBlocState, bool>('checkCanCheck', [
       TheoryData(tCheckingState, false),
       TheoryData(tCheckedState, true),
+      TheoryData(tRequestingState, false),
+      TheoryData(tRequestedState, true),
       TheoryData(tAskingState, false),
       TheoryData(tConfirmableAskState, false),
       TheoryData(tAskedState, true),
@@ -77,6 +95,8 @@ void main() {
     testTheory<PermissionsBlocState, bool>('checkCanAsk', [
       TheoryData(tCheckingState, false),
       TheoryData(tCheckedState, true),
+      TheoryData(tRequestingState, false),
+      TheoryData(tRequestedState, true),
       TheoryData(tAskingState, false),
       TheoryData(tConfirmableAskState, false),
       TheoryData(tAskedState, true),
@@ -87,6 +107,8 @@ void main() {
     testTheory<PermissionsBlocState, bool>('checkCanConfirmAsk', [
       TheoryData(tCheckingState, false),
       TheoryData(tCheckedState, false),
+      TheoryData(tRequestingState, false),
+      TheoryData(tRequestedState, false),
       TheoryData(tAskingState, false),
       TheoryData(tConfirmableAskState, true),
       TheoryData(tAskedState, false),
