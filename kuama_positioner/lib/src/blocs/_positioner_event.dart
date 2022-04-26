@@ -1,64 +1,144 @@
 part of 'position_bloc.dart';
 
-abstract class PositionBlocEvent extends Equatable {
-  const PositionBlocEvent();
+abstract class _PositionBlocEvent extends Equatable {
+  const _PositionBlocEvent();
+
+  R map<R>({
+    required R Function(_UpdateStatusEvent event) updateStatus,
+    required R Function(_LocatePositionBloc event) locate,
+    required R Function(_TrackPositionBloc event) track,
+    required R Function(_UnTrackPositionBloc event) unTrack,
+    required R Function(_EmitTrackingFailureEvent event) emitTrackingError,
+    required R Function(_EmitTrackingPositionEvent event) emitTrackingPosition,
+  });
 
   @override
   bool? get stringify => true;
 }
 
-/// [PositionBloc.locate]
-class LocatePositionBloc extends PositionBlocEvent {
-  final bool isRealTimeRequired;
+/// Event to update the status of the position permissions and service
+class _UpdateStatusEvent extends _PositionBlocEvent {
+  final bool hasPermissionGranted;
+  final bool isServiceEnabled;
 
-  const LocatePositionBloc({this.isRealTimeRequired = false});
+  const _UpdateStatusEvent(this.hasPermissionGranted, this.isServiceEnabled);
 
   @override
-  List<Object?> get props => [isRealTimeRequired];
+  R map<R>({
+    required R Function(_UpdateStatusEvent event) updateStatus,
+    required R Function(_LocatePositionBloc event) locate,
+    required R Function(_TrackPositionBloc event) track,
+    required R Function(_UnTrackPositionBloc event) unTrack,
+    required R Function(_EmitTrackingFailureEvent event) emitTrackingError,
+    required R Function(_EmitTrackingPositionEvent event) emitTrackingPosition,
+  }) {
+    return updateStatus(this);
+  }
+
+  @override
+  List<Object?> get props => [hasPermissionGranted, isServiceEnabled];
+}
+
+/// [PositionBloc.locate]
+class _LocatePositionBloc extends _PositionBlocEvent {
+  const _LocatePositionBloc();
+
+  @override
+  R map<R>({
+    required R Function(_UpdateStatusEvent event) updateStatus,
+    required R Function(_LocatePositionBloc event) locate,
+    required R Function(_TrackPositionBloc event) track,
+    required R Function(_UnTrackPositionBloc event) unTrack,
+    required R Function(_EmitTrackingFailureEvent event) emitTrackingError,
+    required R Function(_EmitTrackingPositionEvent event) emitTrackingPosition,
+  }) {
+    return locate(this);
+  }
+
+  @override
+  List<Object?> get props => [];
 }
 
 /// [PositionBloc.track]
-class TrackPositionBloc extends PositionBlocEvent {
-  const TrackPositionBloc();
+class _TrackPositionBloc extends _PositionBlocEvent {
+  const _TrackPositionBloc();
+
+  @override
+  R map<R>({
+    required R Function(_UpdateStatusEvent event) updateStatus,
+    required R Function(_LocatePositionBloc event) locate,
+    required R Function(_TrackPositionBloc event) track,
+    required R Function(_UnTrackPositionBloc event) unTrack,
+    required R Function(_EmitTrackingPositionEvent event) emitTrackingPosition,
+    required R Function(_EmitTrackingFailureEvent event) emitTrackingError,
+  }) {
+    return track(this);
+  }
 
   @override
   List<Object?> get props => [];
 }
 
 /// [PositionBloc.unTrack]
-class UnTrackPositionBloc extends PositionBlocEvent {
-  const UnTrackPositionBloc();
+class _UnTrackPositionBloc extends _PositionBlocEvent {
+  const _UnTrackPositionBloc();
+
+  @override
+  R map<R>({
+    required R Function(_UpdateStatusEvent event) updateStatus,
+    required R Function(_LocatePositionBloc event) locate,
+    required R Function(_TrackPositionBloc event) track,
+    required R Function(_UnTrackPositionBloc event) unTrack,
+    required R Function(_EmitTrackingFailureEvent event) emitTrackingError,
+    required R Function(_EmitTrackingPositionEvent event) emitTrackingPosition,
+  }) {
+    return unTrack(this);
+  }
 
   @override
   List<Object?> get props => [];
 }
 
-/// Event to update the status of the position permission
-class _PermissionUpdatePositionBloc extends PositionBlocEvent {
-  final PermissionsBlocState state;
-
-  const _PermissionUpdatePositionBloc(this.state);
-
-  @override
-  List<Object?> get props => [state];
-}
-
-/// Event to update the service status of the position
-class _ServiceUpdatePositionBloc extends PositionBlocEvent {
-  final bool isServiceEnabled;
-
-  const _ServiceUpdatePositionBloc(this.isServiceEnabled);
-
-  @override
-  List<Object?> get props => [isServiceEnabled];
-}
-
 /// Event to update the realtime position
-class _PositionUpdatePositionBloc extends PositionBlocEvent {
-  final PositionBlocState state;
+class _EmitTrackingPositionEvent extends _PositionBlocEvent {
+  final GeoPoint position;
 
-  const _PositionUpdatePositionBloc(this.state);
+  const _EmitTrackingPositionEvent(this.position);
 
   @override
-  List<Object?> get props => [state];
+  R map<R>({
+    required R Function(_LocatePositionBloc event) locate,
+    required R Function(_TrackPositionBloc event) track,
+    required R Function(_UnTrackPositionBloc event) unTrack,
+    required R Function(_UpdateStatusEvent event) updateStatus,
+    required R Function(_EmitTrackingFailureEvent event) emitTrackingError,
+    required R Function(_EmitTrackingPositionEvent event) emitTrackingPosition,
+  }) {
+    return emitTrackingPosition(this);
+  }
+
+  @override
+  List<Object?> get props => [position];
+}
+
+/// Event to update the realtime position with failure
+class _EmitTrackingFailureEvent extends _PositionBlocEvent {
+  final Failure failure;
+
+  const _EmitTrackingFailureEvent(this.failure);
+
+  @override
+  R map<R>({
+    required R Function(_UpdateStatusEvent event) updateStatus,
+    required R Function(_LocatePositionBloc event) locate,
+    required R Function(_TrackPositionBloc event) track,
+    required R Function(_UnTrackPositionBloc event) unTrack,
+    required R Function(_EmitTrackingFailureEvent event) emitTrackingError,
+    required R Function(_EmitTrackingPositionEvent event) emitTrackingPosition,
+  }) {
+    return emitTrackingError(this);
+  }
+
+  @override
+  List<Object?> get props => [failure];
 }

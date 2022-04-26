@@ -22,11 +22,13 @@ class PositionService {
   }
 
   /// Receive the service status of the location
+  @Deprecated('Use PermissionsBloc')
   Stream<bool> get onServiceChanges {
     return locatorRepo.onServiceChanges;
   }
 
   /// Open the position service page to enable it
+  @Deprecated('Use PermissionsBloc')
   Future<bool> openServicePage() async {
     return await locatorRepo.openServicePage();
   }
