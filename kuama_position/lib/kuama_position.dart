@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-library kuama_positioner;
+library kuama_position;
 
 export 'src/blocs/position_bloc.dart';
 export 'src/repositories/position_repository.dart';

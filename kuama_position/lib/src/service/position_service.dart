@@ -1,5 +1,5 @@
 import 'package:get_it/get_it.dart';
-import 'package:kuama_positioner/src/repositories/position_repository.dart';
+import 'package:kuama_position/src/repositories/position_repository.dart';
 import 'package:pure_extensions/pure_extensions.dart';
 
 // TODO: Handle exception in geolocator_platform_interface/src/implementations/method_channel_geolocator.dart:229

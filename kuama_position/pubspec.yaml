@@ -1,4 +1,4 @@
-name: kuama_positioner
+name: kuama_position
 description: A new Flutter project.
 publish_to: 'none'
 version: 0.0.1
@@ -43,4 +43,4 @@ index_generator:
     - '{_,**/_}*{/**,.dart}'
   indexes:
     - path: lib
-      name: kuama_positioner
+      name: kuama_position
