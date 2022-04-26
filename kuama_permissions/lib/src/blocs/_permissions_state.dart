@@ -85,6 +85,8 @@ abstract class PermissionsBlocState with _$PermissionsBlocState {
     });
   }
 
+  bool checkService(Service service) => servicesStatus[service] ?? false;
+
   R map<R>({
     required R Function(CheckingPermissionState state) checking,
     required R Function(CheckedPermissionState state) checked,
