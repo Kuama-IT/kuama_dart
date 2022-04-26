@@ -209,10 +209,6 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
 
     state = this.state;
     emit(state.toAsked(
-      permissionsStatus: {
-        ...state.permissionsStatus,
-        for (final permission in askingPermissions) permission: PermissionStatus.denied,
-      },
       payload: askingPermissions,
       isCancelled: false,
       isRequested: false,

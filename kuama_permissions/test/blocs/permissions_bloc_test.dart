@@ -210,6 +210,7 @@ void main() {
 
       test('permissions is not asked', () async {
         bloc.emit(bloc.state.toConfirmableAsk(
+          permissionsStatus: {tPermission1: PermissionStatus.denied},
           payload: {tPermission1},
           isRestored: false,
         ));
@@ -226,7 +227,6 @@ void main() {
               payload: {tPermission1},
             ),
             state = state.toAsked(
-              permissionsStatus: {tPermission1: PermissionStatus.denied},
               payload: {tPermission1},
               isCancelled: false,
               isRequested: false,
