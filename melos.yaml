@@ -44,11 +44,11 @@ scripts:
     description: Resolve all dependecies
     run: melos exec --fail-fast -- "flutter test --no-pub"
     select-package:
-      scope: [ kuama_permissions, kuama_positioner ]
+      scope: [ kuama_permissions, kuama_position ]
   
   build:index:
     description: Generate index files
     run: melos exec -- "dart pub global run index_generator"
     select-package:
-      scope: [ kuama_permissions, kuama_positioner ]
+      scope: [ kuama_permissions, kuama_position ]
   

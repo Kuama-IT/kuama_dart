@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get_it/get_it.dart';
 import 'package:kuama_permissions/kuama_permissions.dart';
-import 'package:kuama_positioner/kuama_positioner.dart';
+import 'package:kuama_position/kuama_position.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 import 'package:riverbloc/riverbloc.dart';

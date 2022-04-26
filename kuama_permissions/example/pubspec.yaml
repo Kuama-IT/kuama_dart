@@ -11,8 +11,8 @@ dependencies:
 
   kuama_permissions:
     path: ..
-  kuama_positioner:
-    path: ../../kuama_positioner
+  kuama_position:
+    path: ../../kuama_position
 
   shared_preferences: ^2.0.13
   geolocator: ^8.2.0

@@ -6,12 +6,12 @@ import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
 import 'package:kuama_core/kuama_core.dart';
 import 'package:kuama_permissions/kuama_permissions.dart';
-import 'package:kuama_positioner/src/service/position_service.dart';
+import 'package:kuama_position/src/service/position_service.dart';
 import 'package:pure_extensions/pure_extensions.dart';
 import 'package:rxdart/rxdart.dart';
 
-part '_positioner_event.dart';
-part '_positioner_state.dart';
+part '_position_event.dart';
+part '_position_state.dart';
 
 class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
   PositionService get _service => GetIt.I();
@@ -22,7 +22,6 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
     Permission.locationWhenInUse,
     Permission.locationAlways
   };
-  final PermissionsBloc permissionBloc;
 
   final _initSubs = CompositeSubscription();
   final _positionSubs = CompositeSubscription();
@@ -30,7 +29,7 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
 
   PositionBloc({
     GeoPoint? lastPosition,
-    required this.permissionBloc,
+    required PermissionsBloc permissionBloc,
   }) : super(PositionBlocIdle(
           lastPosition: lastPosition,
           hasPermission: permissionBloc.state.checkAny(_permissions, PermissionStatus.granted),
@@ -38,7 +37,7 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
         )) {
     on<_PositionBlocEvent>(_mapEventToState, transformer: sequential());
 
-    _initServiceAndPermissionStatusListeners();
+    _initServiceAndPermissionStatusListeners(permissionBloc);
   }
 
   /// Call it to locate a user.
@@ -76,7 +75,7 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
   }
 
   /// Start listening for the service status
-  void _initServiceAndPermissionStatusListeners() {
+  void _initServiceAndPermissionStatusListeners(PermissionsBloc permissionBloc) {
     permissionBloc.stream.listen((state) {
       final hasPermissionGranted = state.checkAny(_permissions, PermissionStatus.granted);
       final isServiceEnabled = state.checkService(Service.location);
