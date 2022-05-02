@@ -25,6 +25,8 @@ abstract class PositionBlocState extends Equatable {
   /// You must have permission and active service
   bool get canLocalize => hasPermission && isServiceEnabled;
 
+  bool get hasLastPosition => lastPosition != null;
+
   PositionBlocState toIdle({GeoPoint? position, bool? hasPermission, bool? isServiceEnabled}) {
     return PositionBlocIdle(
       lastPosition: position ?? lastPosition,

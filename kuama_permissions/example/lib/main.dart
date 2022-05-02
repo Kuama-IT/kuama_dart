@@ -18,7 +18,7 @@ final permissionBloc = BlocProvider<PermissionsBloc, PermissionsBlocState>((ref)
 
 final positionBloc = BlocProvider<PositionBloc, PositionBlocState>((ref) {
   return PositionBloc(
-    permissionBloc: ref.watch(permissionBloc.bloc),
+    permissionsBloc: ref.watch(permissionBloc.bloc),
   );
 });
 

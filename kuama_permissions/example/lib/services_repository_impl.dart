@@ -2,7 +2,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get_it/get_it.dart';
 import 'package:kuama_permissions/kuama_permissions.dart';
 
-class ServicesRepositoryImpl extends ServicesRepositoryBase {
+class ServicesRepositoryImpl extends ServicesRepository {
   GeolocatorPlatform get geolocator => GetIt.I();
 
   @override

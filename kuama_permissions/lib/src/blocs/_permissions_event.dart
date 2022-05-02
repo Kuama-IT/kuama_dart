@@ -29,7 +29,7 @@ class _CheckPermissionsEvent extends _PermissionsBlocEvent with _$_CheckPermissi
 }
 
 @DataClass(comparable: false)
-class _RequestPermissionsEvent extends _PermissionsBlocEvent with _$_AskPermissionsEvent {
+class _RequestPermissionsEvent extends _PermissionsBlocEvent with _$_RequestPermissionsEvent {
   final Set<Permission> permissions;
 
   _RequestPermissionsEvent(this.permissions);

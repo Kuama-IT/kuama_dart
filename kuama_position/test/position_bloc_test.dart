@@ -1,10 +1,10 @@
+import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:kuama_permissions/kuama_permissions.dart';
 import 'package:kuama_position/src/blocs/position_bloc.dart';
 import 'package:kuama_position/src/service/position_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pure_extensions/pure_extensions.dart';
-import 'package:test/test.dart';
 
 class _MockPositionService extends Mock implements PositionService {}
 
@@ -59,7 +59,7 @@ void main() {
     });
 
     bloc = PositionBloc(
-      permissionBloc: mockPermissionBloc,
+      permissionsBloc: mockPermissionBloc,
     );
 
     expect(

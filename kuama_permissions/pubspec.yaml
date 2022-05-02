@@ -43,6 +43,7 @@ dependency_overrides:
   test_api: 0.4.9
 
 index_generator:
+  page_width: 100
   exclude:
     # Ignore all generated dart files
     - '**.g.dart'

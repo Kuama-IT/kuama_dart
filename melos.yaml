@@ -30,10 +30,6 @@ scripts:
       -path "./**/lib/**"
       -name "*.dart"
       ! -name "*.g.dart"
-      ! -name "env.dart"
-      ! -name "r.dart"
-      ! -name "en.dart"
-      ! -name "data_domain.dart"
       | tr '\n' ' ' | xargs flutter format -l 100 --set-exit-if-changed
 
   analyze:
