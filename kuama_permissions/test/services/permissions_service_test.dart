@@ -37,7 +37,6 @@ void main() {
 
   group("PermissionsService", () {
     const tPermission1 = Permission.storage;
-    const tPermission2 = Permission.camera;
     const tService = Permission.locationWhenInUse;
 
     group('PermissionsService.checkPermissions', () {

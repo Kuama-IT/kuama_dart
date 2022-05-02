@@ -17,7 +17,7 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
   PositionService get _service => GetIt.I();
 
   /// Any of these permissions are sufficient for the use of the bloc
-  static final _permissions = <Permission>{
+  static final permissions = <Permission>{
     Permission.location,
     Permission.locationWhenInUse,
     Permission.locationAlways
@@ -29,15 +29,15 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
 
   PositionBloc({
     GeoPoint? lastPosition,
-    required PermissionsBloc permissionBloc,
+    required PermissionsBloc permissionsBloc,
   }) : super(PositionBlocIdle(
           lastPosition: lastPosition,
-          hasPermission: permissionBloc.state.checkAny(_permissions, PermissionStatus.granted),
-          isServiceEnabled: permissionBloc.state.checkService(Service.location),
+          hasPermission: permissionsBloc.state.checkAny(permissions, PermissionStatus.granted),
+          isServiceEnabled: permissionsBloc.state.checkService(Service.location),
         )) {
     on<_PositionBlocEvent>(_mapEventToState, transformer: sequential());
 
-    _initServiceAndPermissionStatusListeners(permissionBloc);
+    _initServiceAndPermissionStatusListeners(permissionsBloc);
   }
 
   /// Call it to locate a user.
@@ -77,7 +77,7 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
   /// Start listening for the service status
   void _initServiceAndPermissionStatusListeners(PermissionsBloc permissionBloc) {
     permissionBloc.stream.listen((state) {
-      final hasPermissionGranted = state.checkAny(_permissions, PermissionStatus.granted);
+      final hasPermissionGranted = state.checkAny(permissions, PermissionStatus.granted);
       final isServiceEnabled = state.checkService(Service.location);
       add(_UpdateStatusEvent(hasPermissionGranted, isServiceEnabled));
     }).addTo(_initSubs);

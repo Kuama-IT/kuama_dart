@@ -46,6 +46,11 @@ abstract class PermissionsBlocState with _$PermissionsBlocState {
   /// Returns whether no actions are in progress or the state isn’t [ConfirmableAskPermissionsState].
   bool checkCanAsk(Set<Permission> permissions) {
     if (isLoading || isRefreshing || isWaiting) return false;
+    final isAllEnabled = permissions
+        .map((e) => e.toService())
+        .whereNotNull()
+        .every((element) => servicesStatus[element] == true);
+    if (!isAllEnabled) return true;
     return permissions.any((permission) {
       return permissionsStatus[permission] != PermissionStatus.granted;
     });
