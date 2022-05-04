@@ -80,7 +80,7 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
       final hasPermissionGranted = state.checkAny(permissions, PermissionStatus.granted);
       final isServiceEnabled = state.checkService(Service.location);
       add(_UpdateStatusEvent(hasPermissionGranted, isServiceEnabled));
-    }).addTo(_initSubs);
+    }, onError: onError).addTo(_initSubs);
   }
 
   /// Update current status based on permission and service status
@@ -147,7 +147,7 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
       return const Stream.empty();
     }).listen((position) {
       add(_EmitTrackingPositionEvent(position));
-    }).addTo(_positionSubs);
+    }, onError: onError).addTo(_positionSubs);
   }
 
   /// It will output current position many times

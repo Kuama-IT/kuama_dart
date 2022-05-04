@@ -34,7 +34,7 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
     // TODO: Start listening to stream only when there is at least one permission inside the state
     _refreshPermissionsSub = _service.onRequiredPermissionsRefresh.listen((_) {
       _refresh();
-    });
+    }, onError: onError);
   }
 
   /// Check permissions status.
@@ -244,7 +244,7 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
     for (final service in newServices) {
       _servicesSubs.add(_service.onServiceChanges(service).listen((status) {
         _onServiceChanged(service, status);
-      }));
+      }, onError: onError));
     }
   }
 
