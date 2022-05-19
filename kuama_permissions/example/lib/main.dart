@@ -25,6 +25,8 @@ final positionBloc = BlocProvider<PositionBloc, PositionBlocState>((ref) {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  print('Example App. Test CI :)');
+
   GetIt.instance
     ..registerSingleton(await SharedPreferences.getInstance())
     ..registerSingleton(PermissionHandlerPlatform.instance)
