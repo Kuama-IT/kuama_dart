@@ -1,7 +1,7 @@
 name: kuama_position
 description: A new Flutter project.
 publish_to: 'none'
-version: 0.2.0
+version: 0.2.1
 
 environment:
   sdk: '>=2.17.0 <3.0.0'
@@ -14,13 +14,13 @@ dependencies:
   kuama_core:
     git:
       url: https://github.com/Kuama-IT/kuama_dart.git
-      ref: release
       path: kuama_core
+      ref: 0.2.1
   kuama_permissions:
     git:
       url: https://github.com/Kuama-IT/kuama_dart.git
-      ref: release
       path: kuama_permissions
+      ref: 0.2.1
 
 
   geolocator_platform_interface: ^4.0.5
