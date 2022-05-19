@@ -1,7 +1,7 @@
 name: kuama_permissions
 description: A starting point for Dart libraries or applications.
 publish_to: 'none'
-version: 1.0.0
+version: 0.2.0
 
 environment:
   sdk: '>=2.17.0 <3.0.0'
@@ -12,7 +12,10 @@ dependencies:
     sdk: flutter
 
   kuama_core:
-    path: ../kuama_core
+    git:
+      url: https://github.com/Kuama-IT/kuama_dart.git
+      ref: release
+      path: kuama_core
 
   permission_handler_platform_interface: ^3.7.0
   permission_handler: ^9.2.0
@@ -43,7 +46,8 @@ dev_dependencies:
   mek_data_class_generator: ^0.1.1
 
 dependency_overrides:
-  test_api: 0.4.9
+  kuama_core:
+    path: ../kuama_core
 
 index_generator:
   page_width: 100

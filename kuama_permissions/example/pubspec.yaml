@@ -10,9 +10,15 @@ dependencies:
     sdk: flutter
 
   kuama_permissions:
-    path: ..
+    git:
+      url: https://github.com/Kuama-IT/kuama_dart.git
+      ref: release
+      path: kuama_permissions
   kuama_position:
-    path: ../../kuama_position
+    git:
+      url: https://github.com/Kuama-IT/kuama_dart.git
+      ref: release
+      path: kuama_position
 
   shared_preferences: ^2.0.13
   geolocator: ^8.2.0
@@ -21,6 +27,12 @@ dependencies:
   get_it: ^7.2.0
 
   flutter_riverpod: ^1.0.3
+
+dependency_overrides:
+  kuama_core:
+    path: ../../kuama_core
+  kuama_position:
+    path: ../../kuama_position
 
 dev_dependencies:
   flutter_test:
