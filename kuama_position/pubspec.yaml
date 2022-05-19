@@ -4,8 +4,8 @@ publish_to: 'none'
 version: 0.0.1
 
 environment:
-  sdk: '>=2.16.0 <3.0.0'
-  flutter: ">=2.10.0 <3.0.0"
+  sdk: '>=2.17.0 <3.0.0'
+  flutter: ">=3.0.0"
 
 dependencies:
   flutter:
@@ -17,16 +17,18 @@ dependencies:
     path: ../kuama_permissions
 
 
-  geolocator: ^8.2.0
+  geolocator_platform_interface: ^4.0.5
+  geolocator: ^8.2.1
 
   get_it: # Version defined in kuama_core
+  rxdart: ^0.27.3
   pure_extensions: ^4.1.1
   bloc: ^8.0.3
   bloc_concurrency: ^0.2.0
   equatable: ^2.0.3
 
 dev_dependencies:
-  mek_lints: ^0.2.0
+  mek_lints: ^0.3.0
 
   flutter_test:
     sdk: flutter

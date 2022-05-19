@@ -16,21 +16,21 @@ class _MockPermissionsService extends Mock implements PermissionsService {}
 class _MockPermissionsState extends Mock implements PermissionsBlocState {}
 
 void main() {
-  late StreamController<void> _onRequiredPermissionsRefresh;
-  late _MockPermissionsService _mockPermissionsService;
-  late _MockPermissionsState _mockState;
+  late StreamController<void> onRequiredPermissionsRefresh;
+  late _MockPermissionsService mockPermissionsService;
+  late _MockPermissionsState mockState;
 
   late PermissionsBloc bloc;
 
   setUp(() {
     GetIt.instance
-        .registerSingleton<PermissionsService>(_mockPermissionsService = _MockPermissionsService());
-    _mockState = _MockPermissionsState();
+        .registerSingleton<PermissionsService>(mockPermissionsService = _MockPermissionsService());
+    mockState = _MockPermissionsState();
 
-    _onRequiredPermissionsRefresh = StreamController.broadcast(sync: true);
+    onRequiredPermissionsRefresh = StreamController.broadcast(sync: true);
 
-    when(() => _mockPermissionsService.onRequiredPermissionsRefresh).thenAnswer((_) {
-      return _onRequiredPermissionsRefresh.stream;
+    when(() => mockPermissionsService.onRequiredPermissionsRefresh).thenAnswer((_) {
+      return onRequiredPermissionsRefresh.stream;
     });
 
     Service.values.forEach(registerFallbackValue);
@@ -48,10 +48,10 @@ void main() {
 
     group('PermissionsBloc.check', () {
       test('cant check because cant operate', () {
-        bloc.emit(_mockState);
+        bloc.emit(mockState);
         var state = bloc.state;
 
-        when(() => _mockState.checkCanCheck(any())).thenReturn(false);
+        when(() => mockState.checkCanCheck(any())).thenReturn(false);
 
         bloc.check({Permission.calendar});
 
@@ -61,7 +61,7 @@ void main() {
       test('Check permissions', () async {
         var state = bloc.state;
 
-        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+        when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
             canAsk: true,
             areAllGrantedAndEnabled: true,
@@ -91,7 +91,7 @@ void main() {
         const tPermission = Permission.location;
         const tService = Service.location;
 
-        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+        when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
             canAsk: false,
             areAllGrantedAndEnabled: false,
@@ -99,7 +99,7 @@ void main() {
             services: {tService: true},
           );
         });
-        when(() => _mockPermissionsService.onServiceChanges(any())).thenAnswer((_) async* {});
+        when(() => mockPermissionsService.onServiceChanges(any())).thenAnswer((_) async* {});
 
         after(() => bloc.check({tPermission}));
 
@@ -116,16 +116,16 @@ void main() {
             ),
           ]),
         );
-        verify(() => _mockPermissionsService.onServiceChanges(Service.location));
+        verify(() => mockPermissionsService.onServiceChanges(Service.location));
       });
     });
 
     group('PermissionsBloc.request', () {
       test('cant request because cant operate', () {
-        bloc.emit(_mockState);
+        bloc.emit(mockState);
         var state = bloc.state;
 
-        when(() => _mockState.checkCanRequest(any())).thenReturn(false);
+        when(() => mockState.checkCanRequest(any())).thenReturn(false);
 
         bloc.request({Permission.calendar});
 
@@ -135,7 +135,7 @@ void main() {
       test('Request permissions', () async {
         var state = bloc.state;
 
-        when(() => _mockPermissionsService.requestPermissions(any())).thenAnswer((_) async {
+        when(() => mockPermissionsService.requestPermissions(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
             canAsk: true,
             areAllGrantedAndEnabled: true,
@@ -163,10 +163,10 @@ void main() {
 
     group('PermissionsBloc.confirmAsk', () {
       test('cant confirm ask because cant operate', () {
-        bloc.emit(_mockState);
+        bloc.emit(mockState);
         var state = bloc.state;
 
-        when(() => _mockState.checkCanConfirmAsk(any())).thenReturn(false);
+        when(() => mockState.checkCanConfirmAsk(any())).thenReturn(false);
 
         bloc.confirmAsk(true);
 
@@ -180,7 +180,7 @@ void main() {
         ));
         var state = bloc.state;
 
-        when(() => _mockPermissionsService.requestPermissions(any())).thenAnswer((_) async {
+        when(() => mockPermissionsService.requestPermissions(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
             canAsk: false,
             areAllGrantedAndEnabled: true,
@@ -205,7 +205,7 @@ void main() {
             ),
           ]),
         );
-        verifyNever(() => _mockPermissionsService.markAskedPermissions(any()));
+        verifyNever(() => mockPermissionsService.markAskedPermissions(any()));
       });
 
       test('permissions is not asked', () async {
@@ -216,7 +216,7 @@ void main() {
         ));
         var state = bloc.state;
 
-        when(() => _mockPermissionsService.markAskedPermissions(any())).thenAnswer((_) async {});
+        when(() => mockPermissionsService.markAskedPermissions(any())).thenAnswer((_) async {});
 
         after(() => bloc.confirmAsk(false));
 
@@ -233,7 +233,7 @@ void main() {
             ),
           ]),
         );
-        verify(() => _mockPermissionsService.markAskedPermissions(any()));
+        verify(() => mockPermissionsService.markAskedPermissions(any()));
       });
 
       test('confirm ask is cancelled', () async {
@@ -255,16 +255,16 @@ void main() {
             ),
           ]),
         );
-        verifyNever(() => _mockPermissionsService.markAskedPermissions(any()));
+        verifyNever(() => mockPermissionsService.markAskedPermissions(any()));
       });
     });
 
     group('PermissionsBloc.ask', () {
       test('cant ask because cant operate', () {
-        bloc.emit(_mockState);
+        bloc.emit(mockState);
         var state = bloc.state;
 
-        when(() => _mockState.checkCanAsk(any())).thenReturn(false);
+        when(() => mockState.checkCanAsk(any())).thenReturn(false);
 
         bloc.ask({Permission.calendar});
 
@@ -274,7 +274,7 @@ void main() {
       test('skip check because permissions is already asked', () async {
         var state = bloc.state;
 
-        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+        when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
             canAsk: false,
             areAllGrantedAndEnabled: false,
@@ -282,7 +282,7 @@ void main() {
             services: {tService: true},
           );
         });
-        when(() => _mockPermissionsService.onServiceChanges(any())).thenAnswer((_) async* {});
+        when(() => mockPermissionsService.onServiceChanges(any())).thenAnswer((_) async* {});
 
         after(() => bloc.ask({tPermissionService}));
 
@@ -301,13 +301,13 @@ void main() {
             ),
           ]),
         );
-        verify(() => _mockPermissionsService.onServiceChanges(tService));
+        verify(() => mockPermissionsService.onServiceChanges(tService));
       });
 
       test('cant ask confirm because all permissions are granted', () async {
         var state = bloc.state;
 
-        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+        when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
             canAsk: false,
             areAllGrantedAndEnabled: true,
@@ -318,7 +318,7 @@ void main() {
             services: {tService: true},
           );
         });
-        when(() => _mockPermissionsService.onServiceChanges(any())).thenAnswer((_) async* {});
+        when(() => mockPermissionsService.onServiceChanges(any())).thenAnswer((_) async* {});
 
         after(() => bloc.ask({tPermission1}));
 
@@ -340,13 +340,13 @@ void main() {
             ),
           ]),
         );
-        verify(() => _mockPermissionsService.onServiceChanges(tService));
+        verify(() => mockPermissionsService.onServiceChanges(tService));
       });
 
       test('ask confirm because can ask permissions', () async {
         var state = bloc.state;
 
-        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+        when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
             canAsk: true,
             areAllGrantedAndEnabled: false,
@@ -358,7 +358,7 @@ void main() {
             services: {tService: true},
           );
         });
-        when(() => _mockPermissionsService.onServiceChanges(any())).thenAnswer((_) async* {});
+        when(() => mockPermissionsService.onServiceChanges(any())).thenAnswer((_) async* {});
 
         after(() => bloc.ask({tPermission1, tPermission2, tPermissionService}));
 
@@ -380,7 +380,7 @@ void main() {
             ),
           ]),
         );
-        verify(() => _mockPermissionsService.onServiceChanges(tService));
+        verify(() => mockPermissionsService.onServiceChanges(tService));
       });
     });
 
@@ -393,7 +393,7 @@ void main() {
         ));
         var state = bloc.state;
 
-        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+        when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
             canAsk: false,
             areAllGrantedAndEnabled: false,
@@ -404,7 +404,7 @@ void main() {
           );
         });
 
-        after(() => _onRequiredPermissionsRefresh.add(null));
+        after(() => onRequiredPermissionsRefresh.add(null));
 
         await expectLater(
           bloc.stream,
@@ -430,7 +430,7 @@ void main() {
         ));
         var state = bloc.state;
 
-        when(() => _mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
+        when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
             canAsk: false,
             areAllGrantedAndEnabled: false,
@@ -441,7 +441,7 @@ void main() {
           );
         });
 
-        after(() => _onRequiredPermissionsRefresh.add(null));
+        after(() => onRequiredPermissionsRefresh.add(null));
 
         await expectLater(
           bloc.stream,
