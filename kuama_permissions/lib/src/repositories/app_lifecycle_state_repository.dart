@@ -20,10 +20,10 @@ class AppLifecycleStateRepository {
     _subject ??= StreamController.broadcast(
       sync: true,
       onListen: () {
-        WidgetsBinding.instance!.addObserver(_observer ??= _Observer(_subject!.add));
+        WidgetsBinding.instance.addObserver(_observer ??= _Observer(_subject!.add));
       },
       onCancel: () {
-        WidgetsBinding.instance!.removeObserver(_observer!);
+        WidgetsBinding.instance.removeObserver(_observer!);
       },
     );
 

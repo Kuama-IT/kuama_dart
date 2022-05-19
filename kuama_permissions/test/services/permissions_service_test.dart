@@ -16,17 +16,17 @@ class _MockHandlerPermissionsRepository extends Mock implements PermissionsManag
 class _FakePermission extends Fake implements Permission {}
 
 void main() {
-  late _MockHandlerPermissionsRepository _mockHandler;
-  late _MockStoragePermissionsRepository _mockStorage;
+  late _MockHandlerPermissionsRepository mockHandler;
+  late _MockStoragePermissionsRepository mockStorage;
 
   late PermissionsService service;
 
   setUp(() {
     GetIt.I
       ..registerSingleton<PermissionsManagerRepository>(
-          _mockHandler = _MockHandlerPermissionsRepository())
+          mockHandler = _MockHandlerPermissionsRepository())
       ..registerSingleton<PermissionsPreferencesRepository>(
-          _mockStorage = _MockStoragePermissionsRepository());
+          mockStorage = _MockStoragePermissionsRepository());
 
     service = PermissionsService();
 
@@ -41,10 +41,10 @@ void main() {
 
     group('PermissionsService.checkPermissions', () {
       test('Returns permission status', () async {
-        when(() => _mockStorage.checkAsked(any())).thenReturn({
+        when(() => mockStorage.checkAsked(any())).thenReturn({
           tPermission1: true,
         });
-        when(() => _mockHandler.checkPermissions(any())).thenAnswer((_) async {
+        when(() => mockHandler.checkPermissions(any())).thenAnswer((_) async {
           return {tPermission1: PermissionStatus.permanentlyDenied};
         });
 
@@ -62,13 +62,13 @@ void main() {
       });
 
       test('Returns permission and services status', () async {
-        when(() => _mockStorage.checkAsked(any())).thenReturn({
+        when(() => mockStorage.checkAsked(any())).thenReturn({
           tPermission1: true,
         });
-        when(() => _mockHandler.checkPermissions(any())).thenAnswer((_) async {
+        when(() => mockHandler.checkPermissions(any())).thenAnswer((_) async {
           return {tService: PermissionStatus.permanentlyDenied};
         });
-        when(() => _mockHandler.checkService(any())).thenAnswer((_) async {
+        when(() => mockHandler.checkService(any())).thenAnswer((_) async {
           return ServiceStatus.enabled;
         });
 
