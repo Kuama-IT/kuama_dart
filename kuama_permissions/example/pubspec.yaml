@@ -20,13 +20,13 @@ dependencies:
       ref: release
       path: kuama_position
 
-  shared_preferences: ^2.0.13
-  geolocator: ^8.2.0
+  shared_preferences: ^2.0.15
+  geolocator: ^9.0.0
 
   riverbloc: ^1.0.0+2
   get_it: ^7.2.0
 
-  flutter_riverpod: ^1.0.3
+  flutter_riverpod: ^1.0.4
 
 dependency_overrides:
   kuama_core:
