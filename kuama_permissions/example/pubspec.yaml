@@ -12,13 +12,13 @@ dependencies:
   kuama_permissions:
     git:
       url: https://github.com/Kuama-IT/kuama_dart.git
-      ref: release
       path: kuama_permissions
+      ref: 0.2.2
   kuama_position:
     git:
       url: https://github.com/Kuama-IT/kuama_dart.git
-      ref: release
       path: kuama_position
+      ref: 0.2.2
 
   shared_preferences: ^2.0.15
   geolocator: ^9.0.0
