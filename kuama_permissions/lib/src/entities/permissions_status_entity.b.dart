@@ -6,8 +6,8 @@ part 'permissions_status_entity.b.g.dart';
 
 @DataClass(changeable: false)
 class PermissionsStatusEntity with _$PermissionsStatusEntity {
-  /// Whether the permissions can been asked
-  final bool canAsk;
+  /// Whether the permissions can been asked or requested
+  final bool canResolve;
 
   /// Whether all permissions are granted and services are enabled
   final bool areAllGrantedAndEnabled;
@@ -17,7 +17,7 @@ class PermissionsStatusEntity with _$PermissionsStatusEntity {
   final Map<Service, bool> services;
 
   const PermissionsStatusEntity({
-    required this.canAsk,
+    required this.canResolve,
     required this.areAllGrantedAndEnabled,
     required this.permissions,
     required this.services,

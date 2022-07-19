@@ -63,7 +63,7 @@ void main() {
 
         when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
-            canAsk: true,
+            canResolve: true,
             areAllGrantedAndEnabled: true,
             permissions: {tPermission1: PermissionStatus.granted},
             services: {},
@@ -93,7 +93,7 @@ void main() {
 
         when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
-            canAsk: false,
+            canResolve: false,
             areAllGrantedAndEnabled: false,
             permissions: {tPermission: PermissionStatus.permanentlyDenied},
             services: {tService: true},
@@ -132,19 +132,61 @@ void main() {
         expect(bloc.state, state);
       });
 
+      test('skip request because permissions is already resolved', () async {
+        var state = bloc.state;
+
+        when(() => mockPermissionsService.checkStatus(any(), tryAgain: any(named: 'tryAgain')))
+            .thenAnswer((_) async {
+          return PermissionsStatusEntity(
+            canResolve: false,
+            areAllGrantedAndEnabled: false,
+            permissions: {tPermissionService: PermissionStatus.denied},
+            services: {tService: true},
+          );
+        });
+        when(() => mockPermissionsService.onServiceChanges(any())).thenAnswer((_) async* {});
+
+        after(() => bloc.request({tPermissionService}, tryAgain: false));
+
+        await expectLater(
+          bloc.stream,
+          emitsInOrder([
+            state = state.toRequesting(
+              payload: {tPermissionService},
+            ),
+            state = state.toRequested(
+              isRequested: false,
+              payload: {tPermissionService},
+              permissionsStatus: {tPermissionService: PermissionStatus.denied},
+              servicesStatus: {tService: true},
+            ),
+          ]),
+        );
+        verify(() => mockPermissionsService.onServiceChanges(tService));
+      });
+
       test('Request permissions', () async {
         var state = bloc.state;
 
+        when(() => mockPermissionsService.checkStatus(any(), tryAgain: any(named: 'tryAgain')))
+            .thenAnswer((_) async {
+          return PermissionsStatusEntity(
+            canResolve: true,
+            areAllGrantedAndEnabled: false,
+            permissions: {tPermission1: PermissionStatus.granted},
+            services: {},
+          );
+        });
         when(() => mockPermissionsService.requestPermissions(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
-            canAsk: true,
+            canResolve: true,
             areAllGrantedAndEnabled: true,
             permissions: {tPermission1: PermissionStatus.granted},
             services: {},
           );
         });
 
-        after(() => bloc.request({tPermission1}));
+        after(() => bloc.request({tPermission1}, tryAgain: false));
 
         await expectLater(
           bloc.stream,
@@ -153,6 +195,7 @@ void main() {
               payload: {tPermission1},
             ),
             state = state.toRequested(
+              isRequested: true,
               payload: {tPermission1},
               permissionsStatus: {tPermission1: PermissionStatus.granted},
             ),
@@ -182,7 +225,7 @@ void main() {
 
         when(() => mockPermissionsService.requestPermissions(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
-            canAsk: false,
+            canResolve: false,
             areAllGrantedAndEnabled: true,
             permissions: {tPermission1: PermissionStatus.granted},
             services: {},
@@ -276,7 +319,7 @@ void main() {
 
         when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
-            canAsk: false,
+            canResolve: false,
             areAllGrantedAndEnabled: false,
             permissions: {tPermissionService: PermissionStatus.denied},
             services: {tService: true},
@@ -309,7 +352,7 @@ void main() {
 
         when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
-            canAsk: false,
+            canResolve: false,
             areAllGrantedAndEnabled: true,
             permissions: {
               tPermission1: PermissionStatus.granted,
@@ -348,7 +391,7 @@ void main() {
 
         when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
-            canAsk: true,
+            canResolve: true,
             areAllGrantedAndEnabled: false,
             permissions: {
               tPermission1: PermissionStatus.granted,
@@ -395,7 +438,7 @@ void main() {
 
         when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
-            canAsk: false,
+            canResolve: false,
             areAllGrantedAndEnabled: false,
             permissions: {
               tPermission1: PermissionStatus.granted,
@@ -432,7 +475,7 @@ void main() {
 
         when(() => mockPermissionsService.checkStatus(any())).thenAnswer((_) async {
           return PermissionsStatusEntity(
-            canAsk: false,
+            canResolve: false,
             areAllGrantedAndEnabled: false,
             permissions: {
               tPermission1: PermissionStatus.granted,

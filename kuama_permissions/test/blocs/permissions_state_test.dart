@@ -39,6 +39,7 @@ void main() {
       permissionsStatus: {},
       servicesStatus: {},
       payload: {},
+      isRequested: false,
     );
     final tConfirmableAskState = ConfirmableAskPermissionsState(
       isRefreshing: false,

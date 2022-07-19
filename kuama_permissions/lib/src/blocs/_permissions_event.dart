@@ -31,8 +31,9 @@ class _CheckPermissionsEvent extends _PermissionsBlocEvent with _$_CheckPermissi
 @DataClass(comparable: false)
 class _RequestPermissionsEvent extends _PermissionsBlocEvent with _$_RequestPermissionsEvent {
   final Set<Permission> permissions;
+  final bool tryAgain;
 
-  _RequestPermissionsEvent(this.permissions);
+  _RequestPermissionsEvent(this.permissions, {required this.tryAgain});
 
   @override
   R map<R>({

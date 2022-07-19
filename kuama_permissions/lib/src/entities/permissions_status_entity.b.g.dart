@@ -12,7 +12,7 @@ mixin _$PermissionsStatusEntity {
   PermissionsStatusEntity get _self => this as PermissionsStatusEntity;
 
   Iterable<Object?> get _props sync* {
-    yield _self.canAsk;
+    yield _self.canResolve;
     yield _self.areAllGrantedAndEnabled;
     yield _self.permissions;
     yield _self.services;
@@ -27,7 +27,7 @@ mixin _$PermissionsStatusEntity {
   int get hashCode => Object.hashAll(_props);
 
   String toString() => (ClassToString('PermissionsStatusEntity')
-        ..add('canAsk', _self.canAsk)
+        ..add('canResolve', _self.canResolve)
         ..add('areAllGrantedAndEnabled', _self.areAllGrantedAndEnabled)
         ..add('permissions', _self.permissions)
         ..add('services', _self.services))
