@@ -18,8 +18,10 @@ mixin _$_CheckPermissionsEvent {
 mixin _$_RequestPermissionsEvent {
   _RequestPermissionsEvent get _self => this as _RequestPermissionsEvent;
 
-  String toString() =>
-      (ClassToString('_RequestPermissionsEvent')..add('permissions', _self.permissions)).toString();
+  String toString() => (ClassToString('_RequestPermissionsEvent')
+        ..add('permissions', _self.permissions)
+        ..add('tryAgain', _self.tryAgain))
+      .toString();
 }
 
 mixin _$_AskPermissionsEvent {
@@ -203,6 +205,7 @@ mixin _$RequestedPermissionsState {
     yield _self.permissionsStatus;
     yield _self.servicesStatus;
     yield _self.payload;
+    yield _self.isRequested;
   }
 
   bool operator ==(Object other) =>
@@ -217,7 +220,8 @@ mixin _$RequestedPermissionsState {
         ..add('isRefreshing', _self.isRefreshing)
         ..add('permissionsStatus', _self.permissionsStatus)
         ..add('servicesStatus', _self.servicesStatus)
-        ..add('payload', _self.payload))
+        ..add('payload', _self.payload)
+        ..add('isRequested', _self.isRequested))
       .toString();
 
   RequestedPermissionsState copyWith({
@@ -225,12 +229,14 @@ mixin _$RequestedPermissionsState {
     Map<Permission, PermissionStatus>? permissionsStatus,
     Map<Service, bool>? servicesStatus,
     Set<Permission>? payload,
+    bool? isRequested,
   }) {
     return RequestedPermissionsState(
       isRefreshing: isRefreshing ?? _self.isRefreshing,
       permissionsStatus: permissionsStatus ?? _self.permissionsStatus,
       servicesStatus: servicesStatus ?? _self.servicesStatus,
       payload: payload ?? _self.payload,
+      isRequested: isRequested ?? _self.isRequested,
     );
   }
 }

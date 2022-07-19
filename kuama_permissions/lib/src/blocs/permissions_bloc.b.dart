@@ -51,7 +51,8 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
   ///
   /// While processing the actions, [RequestingPermissionsState] is emitted.
   /// Once the action is completed, permissions and services status are update to [permissions] and [RequestedPermissionsState] is emitted.
-  void request(Set<Permission> permissions) => add(_RequestPermissionsEvent(permissions));
+  void request(Set<Permission> permissions, {bool tryAgain = true}) =>
+      add(_RequestPermissionsEvent(permissions, tryAgain: tryAgain));
 
   /// Asks permissions.
   ///
@@ -93,7 +94,7 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
     return event.map<Future<void>>(check: (event) {
       return _onCheck(emit, event.permissions);
     }, request: (event) {
-      return _onRequest(emit, event.permissions);
+      return _onRequest(emit, event.permissions, tryAgain: event.tryAgain);
     }, ask: (event) {
       return _onAsk(emit, event.permissions, tryAgain: event.tryAgain);
     }, confirmAsk: (event) {
@@ -129,19 +130,38 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
     ));
   }
 
-  Future<void> _onRequest(Emitter<PermissionsBlocState> emit, Set<Permission> permissions) async {
+  Future<void> _onRequest(
+    Emitter<PermissionsBlocState> emit,
+    Set<Permission> permissions, {
+    bool tryAgain = true,
+  }) async {
     if (permissions.isEmpty || !state.checkCanRequest(permissions)) return;
 
     emit(state.toRequesting(
       payload: permissions,
     ));
 
-    final status = await _service.requestPermissions(permissions.toList());
+    final checkStatus = await _service.checkStatus(permissions.toList(), tryAgain: tryAgain);
+
+    _listenServices(checkStatus.services.keys);
+
+    if (!checkStatus.canResolve || checkStatus.areAllGrantedAndEnabled) {
+      emit(state.toRequested(
+        permissionsStatus: {...state.permissionsStatus, ...checkStatus.permissions},
+        servicesStatus: {...state.servicesStatus, ...checkStatus.services},
+        payload: permissions,
+        isRequested: false,
+      ));
+      return;
+    }
+
+    final requestStatus = await _service.requestPermissions(permissions.toList());
 
     emit(state.toRequested(
+      permissionsStatus: {...state.permissionsStatus, ...requestStatus.permissions},
+      servicesStatus: {...state.servicesStatus, ...requestStatus.services},
       payload: permissions,
-      permissionsStatus: {...state.permissionsStatus, ...status.permissions},
-      servicesStatus: {...state.servicesStatus, ...status.services},
+      isRequested: true,
     ));
   }
 
@@ -163,7 +183,7 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
     final permissionsStatus = {...state.permissionsStatus, ...result.permissions};
     final servicesStatus = {...state.servicesStatus, ...result.services};
 
-    if (!result.canAsk || result.areAllGrantedAndEnabled) {
+    if (!result.canResolve || result.areAllGrantedAndEnabled) {
       emit(state.toAsked(
         permissionsStatus: permissionsStatus,
         servicesStatus: servicesStatus,

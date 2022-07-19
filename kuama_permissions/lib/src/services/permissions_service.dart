@@ -47,15 +47,14 @@ class PermissionsService {
     List<Permission> permissions, {
     bool tryAgain = false,
   }) async {
-    final preferencesPermissions = _preferences.checkAsked(permissions);
-    final canAsk = preferencesPermissions.any((_, isAsked) => !isAsked);
-
+    final preferencesPermissions = _preferences.checkResolved(permissions);
+    final hasResolvedPermission = preferencesPermissions.any((_, isResolved) => isResolved);
     final checkedPermissions = await _handler.checkPermissions(permissions);
 
     final checkedServices = await _checkServices(permissions);
 
     return PermissionsStatusEntity(
-      canAsk: canAsk || tryAgain,
+      canResolve: !hasResolvedPermission || tryAgain,
       areAllGrantedAndEnabled: _checkAllGrantedAndEnabled(checkedPermissions, checkedServices),
       permissions: checkedPermissions,
       services: checkedServices,
@@ -64,19 +63,19 @@ class PermissionsService {
 
   /// Mark [permissions] as "not requestable"
   Future<void> markAskedPermissions(List<Permission> permissions) async {
-    await _preferences.markAsked(permissions);
+    await _preferences.markResolved(permissions);
   }
 
   /// Requests [permissions] and mark them as "not requestable"
   Future<PermissionsStatusEntity> requestPermissions(List<Permission> permissions) async {
-    await _preferences.markAsked(permissions);
+    await _preferences.markResolved(permissions);
 
     final requestedPermissions = await _handler.requestPermissions(permissions);
 
     final checkedServices = await _checkServices(permissions);
 
     return PermissionsStatusEntity(
-      canAsk: false,
+      canResolve: false,
       areAllGrantedAndEnabled: _checkAllGrantedAndEnabled(requestedPermissions, checkedServices),
       permissions: requestedPermissions,
       services: checkedServices,

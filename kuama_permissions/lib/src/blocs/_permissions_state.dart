@@ -170,11 +170,13 @@ abstract class PermissionsBlocState with _$PermissionsBlocState {
     Map<Permission, PermissionStatus>? permissionsStatus,
     Map<Service, bool>? servicesStatus,
     required Set<Permission> payload,
+    required bool isRequested,
   }) {
     return RequestedPermissionsState(
       isRefreshing: false,
       permissionsStatus: permissionsStatus ?? this.permissionsStatus,
       servicesStatus: servicesStatus ?? this.servicesStatus,
+      isRequested: isRequested,
       payload: payload,
     );
   }
@@ -328,11 +330,15 @@ class RequestingPermissionsState extends PermissionsBlocState with _$RequestingP
 class RequestedPermissionsState extends PermissionsBlocState with _$RequestedPermissionsState {
   final Set<Permission> payload;
 
+  /// Whether the permission has been requested.
+  final bool isRequested;
+
   const RequestedPermissionsState({
     required bool isRefreshing,
     required Map<Permission, PermissionStatus> permissionsStatus,
     required Map<Service, bool> servicesStatus,
     required this.payload,
+    required this.isRequested,
   }) : super(
           isRefreshing: isRefreshing,
           permissionsStatus: permissionsStatus,

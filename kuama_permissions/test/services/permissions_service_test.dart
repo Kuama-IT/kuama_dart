@@ -41,7 +41,7 @@ void main() {
 
     group('PermissionsService.checkPermissions', () {
       test('Returns permission status', () async {
-        when(() => mockStorage.checkAsked(any())).thenReturn({
+        when(() => mockStorage.checkResolved(any())).thenReturn({
           tPermission1: true,
         });
         when(() => mockHandler.checkPermissions(any())).thenAnswer((_) async {
@@ -53,7 +53,7 @@ void main() {
         expect(
           result,
           PermissionsStatusEntity(
-            canAsk: false,
+            canResolve: false,
             areAllGrantedAndEnabled: false,
             permissions: {tPermission1: PermissionStatus.permanentlyDenied},
             services: {},
@@ -62,7 +62,7 @@ void main() {
       });
 
       test('Returns permission and services status', () async {
-        when(() => mockStorage.checkAsked(any())).thenReturn({
+        when(() => mockStorage.checkResolved(any())).thenReturn({
           tPermission1: true,
         });
         when(() => mockHandler.checkPermissions(any())).thenAnswer((_) async {
@@ -77,7 +77,7 @@ void main() {
         expect(
           result,
           PermissionsStatusEntity(
-            canAsk: false,
+            canResolve: false,
             areAllGrantedAndEnabled: false,
             permissions: {tService: PermissionStatus.permanentlyDenied},
             services: {Service.location: true},
