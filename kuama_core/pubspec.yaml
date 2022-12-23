@@ -1,20 +1,32 @@
 name: kuama_core
 description: A starting point for Dart libraries or applications.
 publish_to: 'none'
-version: 0.2.5
+version: 0.3.0
 
 environment:
   sdk: '>=2.17.0 <3.0.0'
 
-dependencies:
-  kuama_flutter:
-    git:
-      url: https://github.com/Kuama-IT/kuama_flutter.git
-      ref: develop
+scripts:
+  build:index: dart pub global run index_generator
 
+dependencies:
   get_it: ^7.2.0 # Global packages version
+  tuple: ^2.0.1
+  rxdart:
 
 dev_dependencies:
   mek_lints: ^0.3.0
 
   test: ^1.21.1
+
+index_generator:
+  page_width: 100
+  exclude:
+    # Ignore all generated dart files
+    - '**.g.dart'
+    # Ignore all private folders or files
+    - '{_,**/_}*{/**,.dart}'
+  indexes:
+    - path: lib
+      exports:
+        - package: package:tuple/tuple.dart

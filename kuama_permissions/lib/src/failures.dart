@@ -4,7 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 class MissingPermissionsFailure extends Failure {
   final List<Permission> permissions;
 
-  MissingPermissionsFailure(this.permissions);
+  MissingPermissionsFailure(this.permissions, {super.exceptionCaught});
 
   @override
   String get message => 'Missing permissions: ${permissions.join(', ')}';
@@ -13,7 +13,7 @@ class MissingPermissionsFailure extends Failure {
 class FailedOpenAppPageFailure extends Failure {
   final AppPage page;
 
-  FailedOpenAppPageFailure(this.page);
+  FailedOpenAppPageFailure(this.page, {super.exceptionCaught});
 
   @override
   String get message => 'Failed to open external page `${page.name}`';
