@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.3.0 (2022-12-23)
+- refactor(kuama_core): removed `kuama_flutter` package dependency
+
 ## 0.2.5 (2022-07-29)
 - fix (Permissions) refresh when app request permissions
 
