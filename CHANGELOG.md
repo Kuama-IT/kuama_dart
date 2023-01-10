@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.0.0 (2023-01-10)
+- build: upgrade dependencies: flutter `^3.3.0`, dart: `^2.18.0`, mek_data_class: `^1.0.0`
+
 ## 0.3.0 (2022-12-23)
 - refactor(kuama_core): removed `kuama_flutter` package dependency
 

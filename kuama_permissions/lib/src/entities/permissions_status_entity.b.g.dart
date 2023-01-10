@@ -6,7 +6,7 @@ part of 'permissions_status_entity.b.dart';
 // DataClassGenerator
 // **************************************************************************
 
-// ignore_for_file: annotate_overrides
+// ignore_for_file: annotate_overrides, unused_element
 
 mixin _$PermissionsStatusEntity {
   PermissionsStatusEntity get _self => this as PermissionsStatusEntity;
@@ -20,7 +20,7 @@ mixin _$PermissionsStatusEntity {
 
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _$PermissionsStatusEntity &&
+      other is PermissionsStatusEntity &&
           runtimeType == other.runtimeType &&
           DataClass.$equals(_props, other._props);
 
