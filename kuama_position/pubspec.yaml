@@ -1,11 +1,15 @@
 name: kuama_position
 description: A new Flutter project.
 publish_to: 'none'
-version: 0.3.0
+version: 1.0.0
 
 environment:
-  sdk: '>=2.17.0 <3.0.0'
-  flutter: ">=3.0.0"
+  sdk: '>=2.18.0 <3.0.0'
+  flutter: ">=3.3.0"
+
+scripts:
+  # To generate library file
+  build:index: dart pub global run index_generator
 
 dependencies:
   flutter:
@@ -15,12 +19,12 @@ dependencies:
     git:
       url: https://github.com/Kuama-IT/kuama_dart.git
       path: kuama_core
-      ref: 0.3.0
+      ref: 1.0.0
   kuama_permissions:
     git:
       url: https://github.com/Kuama-IT/kuama_dart.git
       path: kuama_permissions
-      ref: 0.3.0
+      ref: 1.0.0
 
 
   geolocator_platform_interface: ^4.0.5

@@ -6,7 +6,7 @@ part of 'permissions_bloc.b.dart';
 // DataClassGenerator
 // **************************************************************************
 
-// ignore_for_file: annotate_overrides
+// ignore_for_file: annotate_overrides, unused_element
 
 mixin _$_CheckPermissionsEvent {
   _CheckPermissionsEvent get _self => this as _CheckPermissionsEvent;
@@ -58,7 +58,7 @@ mixin _$PermissionsBlocState {
 
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _$PermissionsBlocState &&
+      other is PermissionsBlocState &&
           runtimeType == other.runtimeType &&
           DataClass.$equals(_props, other._props);
 
@@ -89,7 +89,7 @@ mixin _$CheckingPermissionState {
 
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _$CheckingPermissionState &&
+      other is CheckingPermissionState &&
           runtimeType == other.runtimeType &&
           DataClass.$equals(_props, other._props);
 
@@ -129,7 +129,7 @@ mixin _$CheckedPermissionState {
 
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _$CheckedPermissionState &&
+      other is CheckedPermissionState &&
           runtimeType == other.runtimeType &&
           DataClass.$equals(_props, other._props);
 
@@ -169,7 +169,7 @@ mixin _$RequestingPermissionsState {
 
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _$RequestingPermissionsState &&
+      other is RequestingPermissionsState &&
           runtimeType == other.runtimeType &&
           DataClass.$equals(_props, other._props);
 
@@ -210,7 +210,7 @@ mixin _$RequestedPermissionsState {
 
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _$RequestedPermissionsState &&
+      other is RequestedPermissionsState &&
           runtimeType == other.runtimeType &&
           DataClass.$equals(_props, other._props);
 
@@ -253,7 +253,7 @@ mixin _$AskingPermissionsState {
 
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _$AskingPermissionsState &&
+      other is AskingPermissionsState &&
           runtimeType == other.runtimeType &&
           DataClass.$equals(_props, other._props);
 
@@ -294,7 +294,7 @@ mixin _$ConfirmableAskPermissionsState {
 
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _$ConfirmableAskPermissionsState &&
+      other is ConfirmableAskPermissionsState &&
           runtimeType == other.runtimeType &&
           DataClass.$equals(_props, other._props);
 
@@ -339,7 +339,7 @@ mixin _$AskedPermissionsState {
 
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is _$AskedPermissionsState &&
+      other is AskedPermissionsState &&
           runtimeType == other.runtimeType &&
           DataClass.$equals(_props, other._props);
 
