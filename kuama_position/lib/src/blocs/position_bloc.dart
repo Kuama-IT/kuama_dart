@@ -140,6 +140,7 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
   /// Listen realtime position
   void _initPositionListener() {
     Rx.concatEager([
+      // ignore: discarded_futures
       _service.getCurrentPosition().asStream(),
       _service.onPositionChanges,
     ]).onFailureResume((failure) {
