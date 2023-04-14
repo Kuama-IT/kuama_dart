@@ -26,7 +26,7 @@ void main() {
     GetIt.instance.registerSingleton<PositionService>(mockPositionService = _MockPositionService());
   });
 
-  tearDown(() => GetIt.instance.reset());
+  tearDown(GetIt.instance.reset);
 
   void init({
     EmissionType permission = EmissionType.none,
