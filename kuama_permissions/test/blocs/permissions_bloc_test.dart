@@ -38,7 +38,7 @@ void main() {
     bloc = PermissionsBloc();
   });
 
-  tearDown(() => GetIt.instance.reset());
+  tearDown(GetIt.instance.reset);
 
   group("PermissionsBloc", () {
     const tPermission1 = Permission.storage;

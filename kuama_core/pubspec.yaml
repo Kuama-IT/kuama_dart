@@ -1,7 +1,7 @@
 name: kuama_core
 description: A starting point for Dart libraries or applications.
 publish_to: 'none'
-version: 1.0.0
+version: 1.0.1
 
 environment:
   sdk: '>=2.18.0 <3.0.0'
@@ -15,7 +15,7 @@ dependencies:
   rxdart:
 
 dev_dependencies:
-  mek_lints: ^0.3.0
+  mek_lints: ^1.0.0
 
   test: ^1.21.1
 

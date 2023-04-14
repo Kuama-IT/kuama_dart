@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.0.1 (2023-04-14)
+- fix(kuama_permissions): bloc state hash
+- style: align projects to mek_lints 1.0.0
+- chore: removed pure_extensions dependency
+
 ## 1.0.0 (2023-01-10)
 - build: upgrade dependencies: flutter `^3.3.0`, dart: `^2.18.0`, mek_data_class: `^1.0.0`
 

@@ -30,7 +30,7 @@ scripts:
       -path "./**/lib/**"
       -name "*.dart"
       ! -name "*.g.dart"
-      | tr '\n' ' ' | xargs flutter format -l 100 --set-exit-if-changed
+      | tr '\n' ' ' | xargs dart format -l 100 --set-exit-if-changed
 
   analyze:
     description: Analyze code
@@ -39,12 +39,12 @@ scripts:
   test:
     description: Resolve all dependecies
     run: melos exec --fail-fast -- "flutter test --no-pub"
-    select-package:
+    packageFilters:
       scope: [ kuama_permissions, kuama_position ]
   
   build:index:
     description: Generate index files
     run: melos exec -- "dart pub global run index_generator"
-    select-package:
+    packageFilters:
       scope: [ kuama_permissions, kuama_position ]
   
