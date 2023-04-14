@@ -1,6 +1,5 @@
 import 'package:get_it/get_it.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
-import 'package:pure_extensions/pure_extensions.dart';
 
 /// Proxy over a [PermissionHandlerPlatform] implementation
 class PermissionsManagerRepository {
@@ -20,9 +19,9 @@ class PermissionsManagerRepository {
   ///
   /// Returns a [Map] containing the status of each requested [Permission].
   Future<Map<Permission, PermissionStatus>> checkPermissions(List<Permission> permissions) async {
-    final results = await permissions.map((permission) async {
+    final results = await Future.wait(permissions.map((permission) async {
       return _handler.checkPermissionStatus(permission);
-    }).waitFutures();
+    }));
     return Map.fromIterables(permissions, results);
   }
 

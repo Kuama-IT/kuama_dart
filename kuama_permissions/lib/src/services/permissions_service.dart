@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:get_it/get_it.dart';
 import 'package:kuama_permissions/src/entities/permissions_status_entity.b.dart';
 import 'package:kuama_permissions/src/entities/service.dart';
@@ -8,7 +9,6 @@ import 'package:kuama_permissions/src/repositories/permissions_preferences_repos
 import 'package:kuama_permissions/src/repositories/services_repository.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
-import 'package:pure_extensions/pure_extensions.dart';
 
 /// It allows you to check the status or preferences of the permissions and to update or request them
 ///
@@ -48,7 +48,7 @@ class PermissionsService {
     bool tryAgain = false,
   }) async {
     final preferencesPermissions = _preferences.checkResolved(permissions);
-    final hasResolvedPermission = preferencesPermissions.any((_, isResolved) => isResolved);
+    final hasResolvedPermission = preferencesPermissions.values.any((isResolved) => isResolved);
     final checkedPermissions = await _handler.checkPermissions(permissions);
 
     final checkedServices = await _checkServices(permissions);
@@ -98,8 +98,8 @@ class PermissionsService {
     Map<Permission, PermissionStatus> permissions,
     Map<Service, bool> services,
   ) {
-    final isAllGranted = permissions.every((_, status) => status.isGranted);
-    final isAllEnabled = services.every((_, isEnabled) => isEnabled);
+    final isAllGranted = permissions.values.every((status) => status.isGranted);
+    final isAllEnabled = services.values.every((isEnabled) => isEnabled);
 
     return isAllGranted && isAllEnabled;
   }
@@ -112,9 +112,9 @@ class PermissionsService {
       return MapEntry(service, result);
     }));
 
-    return results.map((e) {
+    return Map.fromEntries(results.map((e) {
       assert(e.value != ServiceStatus.notApplicable, '`${e.key}` not has applicable service');
       return MapEntry(e.key, e.value == ServiceStatus.enabled);
-    }).toMap();
+    }));
   }
 }

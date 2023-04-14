@@ -33,7 +33,7 @@ void main() {
     registerFallbackValue(_FakePermission());
   });
 
-  tearDown(() => GetIt.I.reset());
+  tearDown(GetIt.instance.reset);
 
   group("PermissionsService", () {
     const tPermission1 = Permission.storage;

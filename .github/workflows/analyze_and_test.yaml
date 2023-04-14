@@ -1,14 +1,16 @@
 name: Analyze and test code
+
 on:
   pull_request:
-    # Some filters on when this actions should run on pull requests
-    # https://frontside.com/blog/2020-05-26-github-actions-pull_request/#:~:text=When%20a%20Github%20Actions%20workflow,opened%20%2C%20synchronize%20%2C%20and%20reopened%20.&text=Basic%20pull_request%20usage.
-    types: [ ready_for_review, review_requested, synchronize ]
     paths: [ '**.dart' ]
   push:
     branches:
       # Run test, analyze and coverage generation also when the PR gets merged into develop
       - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   analyze-and-test:
@@ -22,10 +24,9 @@ jobs:
       # https://github.com/marketplace/actions/flutter-action
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
-          flutter-version: '3.3.x'
+          flutter-version: '3.7.x'
           cache: true
-          cache-key: flutter-version
+          cache-key: 'flutter-:os:-:channel:-:version:-:arch:'
 
       # Install melos
       - name: Install global melos dependency
