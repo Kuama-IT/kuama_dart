@@ -1,11 +1,11 @@
 name: kuama_position
 description: A new Flutter project.
 publish_to: 'none'
-version: 1.0.1
+version: 1.1.0
 
 environment:
-  sdk: '>=2.18.0 <3.0.0'
-  flutter: ">=3.3.0"
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
 
 scripts:
   # To generate library file

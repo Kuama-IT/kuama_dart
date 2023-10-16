@@ -53,7 +53,7 @@ void main() {
 
         when(() => mockState.checkCanCheck(any())).thenReturn(false);
 
-        bloc.check({Permission.calendar});
+        bloc.check({Permission.calendarReadOnly});
 
         expect(bloc.state, state);
       });
@@ -127,7 +127,7 @@ void main() {
 
         when(() => mockState.checkCanRequest(any())).thenReturn(false);
 
-        bloc.request({Permission.calendar});
+        bloc.request({Permission.calendarReadOnly});
 
         expect(bloc.state, state);
       });
@@ -309,7 +309,7 @@ void main() {
 
         when(() => mockState.checkCanAsk(any())).thenReturn(false);
 
-        bloc.ask({Permission.calendar});
+        bloc.ask({Permission.calendarReadOnly});
 
         expect(bloc.state, state);
       });
