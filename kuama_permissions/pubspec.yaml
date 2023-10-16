@@ -1,15 +1,15 @@
 name: kuama_permissions
 description: A starting point for Dart libraries or applications.
 publish_to: 'none'
-version: 1.0.1
+version: 1.1.0
 
 environment:
-  sdk: '>=2.18.0 <3.0.0'
-  flutter: ">=3.3.0"
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
 
 scripts:
   # To generate .g files:
-  build:watch: flutter pub run build_runner watch --delete-conflicting-outputs
+  build:watch: dart run build_runner watch --delete-conflicting-outputs
   # To generate library file
   build:index: dart pub global run index_generator
 
@@ -23,8 +23,8 @@ dependencies:
       path: kuama_core
       ref: 1.0.1
 
-  permission_handler_platform_interface: ^3.9.0
-  permission_handler: ^10.2.0
+  permission_handler_platform_interface: ^3.12.0
+  permission_handler: ^11.0.1
   shared_preferences: ^2.1.0
 
   meta: # Version defined in kuama_core
@@ -34,7 +34,7 @@ dependencies:
   bloc: ^8.1.1
   bloc_concurrency: ^0.2.1
 
-  mek_data_class: ^1.0.1
+  mek_data_class: ^1.4.0
 
 dev_dependencies:
   mek_lints: ^1.0.0
@@ -44,8 +44,8 @@ dev_dependencies:
 
   mocktail: ^0.3.0
 
-  build_runner: ^2.3.3
-  mek_data_class_generator: ^1.1.1
+  build_runner: ^2.4.6
+  mek_data_class_generator: ^1.5.1
 
 dependency_overrides:
   kuama_core:

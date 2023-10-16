@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.0 (2024-09-16)
+- feat: updated dart sdk constraints to support dart 3.0.0
+- chore(kuama_permissions): bump permission_handler package version
+
 ## 1.0.1 (2023-04-14)
 - fix(kuama_permissions): bloc state hash
 - style: align projects to mek_lints 1.0.0

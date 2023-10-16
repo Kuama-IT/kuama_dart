@@ -9,6 +9,7 @@ extension MapPermissionStatus on PermissionStatus {
     R Function()? denied,
     R Function()? permanentlyDenied,
     R Function()? granted,
+    R Function()? provisional,
     required R Function() orElse,
   }) {
     switch (this) {
@@ -20,6 +21,8 @@ extension MapPermissionStatus on PermissionStatus {
         return orElse();
       case PermissionStatus.limited:
         return orElse();
+      case PermissionStatus.provisional:
+        return (provisional ?? orElse)();
       case PermissionStatus.permanentlyDenied:
         return (permanentlyDenied ?? orElse)();
     }
