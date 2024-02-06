@@ -2,7 +2,6 @@ name: Analyze and test code
 
 on:
   pull_request:
-    paths: [ '**.dart' ]
   push:
     branches:
       # Run test, analyze and coverage generation also when the PR gets merged into develop
