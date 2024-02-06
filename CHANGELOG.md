@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.2.0 (2024-02-06)
+- fix: bumped down the permission handler package version to enable the integration of the saf 
+  package in other projects
+
 ## 1.1.0 (2024-09-16)
 - feat: updated dart sdk constraints to support dart 3.0.0
 - chore(kuama_permissions): bump permission_handler package version
