@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.0 (2024-07-23)
+- chore: bumped permission_handler to `^11.3.1`
+- chore: changed rxdart dependency constraints to support version `>=0.27.0 <0.29.0`
+
 ## 1.2.0 (2024-02-06)
 - fix: bumped down the permission handler package version to enable the integration of the saf 
   package in other projects

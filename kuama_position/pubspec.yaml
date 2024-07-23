@@ -12,42 +12,38 @@ scripts:
   build:index: dart pub global run index_generator
 
 dependencies:
-  flutter:
-    sdk: flutter
+  flutter: { sdk: flutter }
 
   kuama_core:
     git:
       url: https://github.com/Kuama-IT/kuama_dart.git
       path: kuama_core
-      ref: 1.2.0
+      ref: 1.3.0
   kuama_permissions:
     git:
       url: https://github.com/Kuama-IT/kuama_dart.git
       path: kuama_permissions
-      ref: 1.2.0
+      ref: 1.3.0
 
 
-  geolocator_platform_interface: ^4.0.7
-  geolocator: ^9.0.2
+  geolocator_platform_interface: ^4.2.4
+  geolocator: ^12.0.0
 
   get_it: # Version defined in kuama_core
-  rxdart: ^0.27.7
+  rxdart: '>=0.27.0 <0.29.0'
   pure_extensions: ^5.0.0
   bloc: ^8.1.1
   bloc_concurrency: ^0.2.1
   equatable: ^2.0.5
 
 dependency_overrides:
-  kuama_core:
-    path: ../kuama_core
-  kuama_permissions:
-    path: ../kuama_permissions
+  kuama_core: { path: ../kuama_core }
+  kuama_permissions: { path: ../kuama_permissions }
 
 dev_dependencies:
   mek_lints: ^1.0.0
 
-  flutter_test:
-    sdk: flutter
+  flutter_test: { sdk: flutter }
 
   mocktail: ^0.3.0
 
