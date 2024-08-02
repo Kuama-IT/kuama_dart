@@ -5,7 +5,7 @@ import 'package:permission_handler_platform_interface/permission_handler_platfor
 class PermissionsManagerRepository {
   PermissionHandlerPlatform get _handler => GetIt.I();
 
-  /// Returns [true] if the app settings page could be opened, otherwise  [false].
+  /// Returns `true` if the app settings page could be opened, otherwise `false`.
   Future<bool> openAppSettings() async {
     return await _handler.openAppSettings();
   }

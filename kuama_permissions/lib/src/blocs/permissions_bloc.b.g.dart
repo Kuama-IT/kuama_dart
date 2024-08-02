@@ -1,5 +1,7 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
+// ignore_for_file: unnecessary_parenthesis
+
 part of 'permissions_bloc.b.dart';
 
 // **************************************************************************
@@ -41,7 +43,7 @@ mixin _$_ConfirmAskPermissionsEvent {
 
 mixin _$_RefreshPermissionsEvent {
   @override
-  String toString() => (ClassToString('_RefreshPermissionsEvent')).toString();
+  String toString() => ClassToString('_RefreshPermissionsEvent').toString();
 }
 
 mixin _$PermissionsBlocState {

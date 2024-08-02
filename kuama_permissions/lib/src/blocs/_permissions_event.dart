@@ -70,6 +70,7 @@ class _AskPermissionsEvent extends _PermissionsBlocEvent with _$_AskPermissionsE
 class _ConfirmAskPermissionsEvent extends _PermissionsBlocEvent with _$_ConfirmAskPermissionsEvent {
   final bool? canRequest;
 
+  // ignore: avoid_positional_boolean_parameters
   _ConfirmAskPermissionsEvent(this.canRequest);
 
   @override

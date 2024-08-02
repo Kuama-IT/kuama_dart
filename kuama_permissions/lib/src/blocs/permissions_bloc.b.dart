@@ -88,6 +88,7 @@ class PermissionsBloc extends Bloc<_PermissionsBlocEvent, PermissionsBlocState> 
   /// If `null`, the request is discarded.
   ///
   /// Note: The confirmation may be completed after a refresh. See [PermissionsBlocState.isRefreshing].
+  // ignore: avoid_positional_boolean_parameters
   void confirmAsk(bool? canRequest) => add(_ConfirmAskPermissionsEvent(canRequest));
 
   Future<void> _onEvent(_PermissionsBlocEvent event, Emitter<PermissionsBlocState> emit) async {

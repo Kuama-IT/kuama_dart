@@ -38,9 +38,9 @@ void main() {
     bloc = PermissionsBloc();
   });
 
-  tearDown(GetIt.instance.reset);
+  tearDown(() async => Future.wait([GetIt.instance.reset(), onRequiredPermissionsRefresh.close()]));
 
-  group("PermissionsBloc", () {
+  group('PermissionsBloc', () {
     const tPermission1 = Permission.storage;
     const tPermission2 = Permission.camera;
     const tPermissionService = Permission.location;
@@ -49,7 +49,7 @@ void main() {
     group('PermissionsBloc.check', () {
       test('cant check because cant operate', () {
         bloc.emit(mockState);
-        var state = bloc.state;
+        final state = bloc.state;
 
         when(() => mockState.checkCanCheck(any())).thenReturn(false);
 
@@ -123,7 +123,7 @@ void main() {
     group('PermissionsBloc.request', () {
       test('cant request because cant operate', () {
         bloc.emit(mockState);
-        var state = bloc.state;
+        final state = bloc.state;
 
         when(() => mockState.checkCanRequest(any())).thenReturn(false);
 
@@ -207,7 +207,7 @@ void main() {
     group('PermissionsBloc.confirmAsk', () {
       test('cant confirm ask because cant operate', () {
         bloc.emit(mockState);
-        var state = bloc.state;
+        final state = bloc.state;
 
         when(() => mockState.checkCanConfirmAsk(any())).thenReturn(false);
 
@@ -305,7 +305,7 @@ void main() {
     group('PermissionsBloc.ask', () {
       test('cant ask because cant operate', () {
         bloc.emit(mockState);
-        var state = bloc.state;
+        final state = bloc.state;
 
         when(() => mockState.checkCanAsk(any())).thenReturn(false);
 

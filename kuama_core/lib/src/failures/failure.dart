@@ -9,7 +9,7 @@ class ExceptionCaught {
 }
 
 /// Maintainers: Keep same structure as [Error]/[Exception]
-abstract class Failure {
+abstract class Failure implements Exception {
   final ExceptionCaught? exceptionCaught;
 
   Failure({required this.exceptionCaught});

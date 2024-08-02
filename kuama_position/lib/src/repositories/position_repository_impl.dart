@@ -30,10 +30,8 @@ class PositionRepositoryImpl implements PositionRepository {
       switch (status) {
         case ServiceStatus.disabled:
           yield false;
-          break;
         case ServiceStatus.enabled:
           yield true;
-          break;
       }
     }
   }

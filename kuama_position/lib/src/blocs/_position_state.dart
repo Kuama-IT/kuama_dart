@@ -21,7 +21,7 @@ abstract class PositionBlocState extends Equatable {
     return true;
   }
 
-  /// Check if you can call [PositionBloc.localize].
+  /// Check if you can call [PositionBloc.locate].
   /// You must have permission and active service
   bool get canLocalize => hasPermission && isServiceEnabled;
 
@@ -69,10 +69,10 @@ class PositionBlocIdle extends PositionBlocState {
   final bool isServiceEnabled;
 
   const PositionBlocIdle({
-    required GeoPoint? lastPosition,
+    required super.lastPosition,
     required this.hasPermission,
     required this.isServiceEnabled,
-  }) : super(lastPosition: lastPosition);
+  });
 
   @override
   List<Object?> get props => [lastPosition, hasPermission, isServiceEnabled];
@@ -83,9 +83,9 @@ class PositionBlocLocating extends PositionBlocState {
   final bool isRealTime;
 
   const PositionBlocLocating({
-    required GeoPoint? lastPosition,
+    required super.lastPosition,
     required this.isRealTime,
-  }) : super(lastPosition: lastPosition);
+  });
 
   @override
   List<Object?> get props => [lastPosition, isRealTime];
@@ -96,9 +96,9 @@ class PositionBlocFailed extends PositionBlocState {
   final Failure failure;
 
   const PositionBlocFailed({
-    required GeoPoint? lastPosition,
+    required super.lastPosition,
     required this.failure,
-  }) : super(lastPosition: lastPosition);
+  });
 
   @override
   List<Object?> get props => [lastPosition, failure];

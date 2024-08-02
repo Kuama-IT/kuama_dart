@@ -83,7 +83,7 @@ class PermissionsService {
   }
 
   Stream<void> get onRequiredPermissionsRefresh async* {
-    AppLifecycleState prevState = AppLifecycleState.paused;
+    var prevState = AppLifecycleState.paused;
     await for (final state in _appLifecycleState.onChanges) {
       if (prevState != AppLifecycleState.resumed &&
           prevState != AppLifecycleState.inactive &&

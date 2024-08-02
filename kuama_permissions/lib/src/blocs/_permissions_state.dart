@@ -49,7 +49,7 @@ abstract class PermissionsBlocState with _$PermissionsBlocState {
     final isAllEnabled = permissions
         .map((e) => e.toService())
         .whereNotNull()
-        .every((element) => servicesStatus[element] == true);
+        .every((element) => servicesStatus[element] ?? false);
     if (!isAllEnabled) return true;
     return permissions.any((permission) {
       return permissionsStatus[permission] != PermissionStatus.granted;
@@ -235,15 +235,11 @@ class CheckingPermissionState extends PermissionsBlocState with _$CheckingPermis
   final Set<Permission> payload;
 
   const CheckingPermissionState({
-    required bool isRefreshing,
-    required Map<Permission, PermissionStatus> permissionsStatus,
-    required Map<Service, bool> servicesStatus,
+    required super.isRefreshing,
+    required super.permissionsStatus,
+    required super.servicesStatus,
     required this.payload,
-  }) : super(
-          isRefreshing: isRefreshing,
-          permissionsStatus: permissionsStatus,
-          servicesStatus: servicesStatus,
-        );
+  });
 
   @override
   bool get isLoading => true;
@@ -267,15 +263,11 @@ class CheckedPermissionState extends PermissionsBlocState with _$CheckedPermissi
   final Set<Permission> payload;
 
   const CheckedPermissionState({
-    required bool isRefreshing,
-    required Map<Permission, PermissionStatus> permissionsStatus,
-    required Map<Service, bool> servicesStatus,
+    required super.isRefreshing,
+    required super.permissionsStatus,
+    required super.servicesStatus,
     required this.payload,
-  }) : super(
-          isRefreshing: isRefreshing,
-          permissionsStatus: permissionsStatus,
-          servicesStatus: servicesStatus,
-        );
+  });
 
   @override
   bool get isLoading => false;
@@ -299,15 +291,11 @@ class RequestingPermissionsState extends PermissionsBlocState with _$RequestingP
   final Set<Permission> payload;
 
   const RequestingPermissionsState({
-    required bool isRefreshing,
-    required Map<Permission, PermissionStatus> permissionsStatus,
-    required Map<Service, bool> servicesStatus,
+    required super.isRefreshing,
+    required super.permissionsStatus,
+    required super.servicesStatus,
     required this.payload,
-  }) : super(
-          isRefreshing: isRefreshing,
-          permissionsStatus: permissionsStatus,
-          servicesStatus: servicesStatus,
-        );
+  });
 
   @override
   bool get isLoading => true;
@@ -334,16 +322,12 @@ class RequestedPermissionsState extends PermissionsBlocState with _$RequestedPer
   final bool isRequested;
 
   const RequestedPermissionsState({
-    required bool isRefreshing,
-    required Map<Permission, PermissionStatus> permissionsStatus,
-    required Map<Service, bool> servicesStatus,
+    required super.isRefreshing,
+    required super.permissionsStatus,
+    required super.servicesStatus,
     required this.payload,
     required this.isRequested,
-  }) : super(
-          isRefreshing: isRefreshing,
-          permissionsStatus: permissionsStatus,
-          servicesStatus: servicesStatus,
-        );
+  });
 
   @override
   bool get isLoading => false;
@@ -367,15 +351,11 @@ class AskingPermissionsState extends PermissionsBlocState with _$AskingPermissio
   final Set<Permission> payload;
 
   const AskingPermissionsState({
-    required bool isRefreshing,
-    required Map<Permission, PermissionStatus> permissionsStatus,
-    required Map<Service, bool> servicesStatus,
+    required super.isRefreshing,
+    required super.permissionsStatus,
+    required super.servicesStatus,
     required this.payload,
-  }) : super(
-          isRefreshing: isRefreshing,
-          permissionsStatus: permissionsStatus,
-          servicesStatus: servicesStatus,
-        );
+  });
 
   @override
   bool get isLoading => true;
@@ -403,16 +383,12 @@ class ConfirmableAskPermissionsState extends PermissionsBlocState
   final bool isRestored;
 
   const ConfirmableAskPermissionsState({
-    required bool isRefreshing,
-    required Map<Permission, PermissionStatus> permissionsStatus,
-    required Map<Service, bool> servicesStatus,
+    required super.isRefreshing,
+    required super.permissionsStatus,
+    required super.servicesStatus,
     required this.payload,
     required this.isRestored,
-  }) : super(
-          isRefreshing: isRefreshing,
-          permissionsStatus: permissionsStatus,
-          servicesStatus: servicesStatus,
-        );
+  });
 
   @override
   bool get isLoading => false;
@@ -441,17 +417,13 @@ class AskedPermissionsState extends PermissionsBlocState with _$AskedPermissions
   final bool isRequested;
 
   const AskedPermissionsState({
-    required bool isRefreshing,
-    required Map<Permission, PermissionStatus> permissionsStatus,
-    required Map<Service, bool> servicesStatus,
+    required super.isRefreshing,
+    required super.permissionsStatus,
+    required super.servicesStatus,
     required this.payload,
     required this.isCancelled,
     required this.isRequested,
-  }) : super(
-          isRefreshing: isRefreshing,
-          permissionsStatus: permissionsStatus,
-          servicesStatus: servicesStatus,
-        );
+  });
 
   @override
   bool get isLoading => false;
