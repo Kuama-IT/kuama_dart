@@ -21,7 +21,7 @@ class _UpdateStatusEvent extends _PositionBlocEvent {
   final bool hasPermissionGranted;
   final bool isServiceEnabled;
 
-  const _UpdateStatusEvent(this.hasPermissionGranted, this.isServiceEnabled);
+  const _UpdateStatusEvent({required this.hasPermissionGranted, required this.isServiceEnabled});
 
   @override
   R map<R>({

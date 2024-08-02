@@ -79,7 +79,10 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
     permissionBloc.stream.listen((state) {
       final hasPermissionGranted = state.checkAny(permissions, PermissionStatus.granted);
       final isServiceEnabled = state.checkService(Service.location);
-      add(_UpdateStatusEvent(hasPermissionGranted, isServiceEnabled));
+      add(_UpdateStatusEvent(
+        hasPermissionGranted: hasPermissionGranted,
+        isServiceEnabled: isServiceEnabled,
+      ));
     }, onError: onError).addTo(_initSubs);
   }
 

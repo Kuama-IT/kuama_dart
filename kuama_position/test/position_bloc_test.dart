@@ -165,7 +165,7 @@ void main() {
         return const GeoPoint(0.0, 0.0);
       });
       when(() => mockPositionService.onPositionChanges).thenAnswer((_) async* {
-        await Future.delayed(const Duration());
+        await Future.delayed(Duration.zero);
         yield const GeoPoint(1.0, 1.0);
       });
 

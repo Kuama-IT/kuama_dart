@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_implementing_value_types
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:kuama_permissions/src/entities/permissions_status_entity.b.dart';
@@ -35,7 +37,7 @@ void main() {
 
   tearDown(GetIt.instance.reset);
 
-  group("PermissionsService", () {
+  group('PermissionsService', () {
     const tPermission1 = Permission.storage;
     const tService = Permission.locationWhenInUse;
 
