@@ -101,7 +101,7 @@ class _UnTrackPositionBloc extends _PositionBlocEvent {
 
 /// Event to update the realtime position
 class _EmitTrackingPositionEvent extends _PositionBlocEvent {
-  final GeoPoint position;
+  final LatLng position;
 
   const _EmitTrackingPositionEvent(this.position);
 

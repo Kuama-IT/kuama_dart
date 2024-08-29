@@ -1,4 +1,4 @@
-import 'package:pure_extensions/pure_extensions.dart';
+import 'package:maps_toolkit/maps_toolkit.dart';
 
 abstract class PositionRepository {
   PositionRepository._();
@@ -13,8 +13,8 @@ abstract class PositionRepository {
   Stream<bool> get onServiceChanges;
 
   /// Request the current position of the user
-  Future<GeoPoint> get currentPosition;
+  Future<LatLng> get currentPosition;
 
   /// Track the current position of the user
-  Stream<GeoPoint> get onPositionChanges;
+  Stream<LatLng> get onPositionChanges;
 }
