@@ -1,7 +1,7 @@
 part of 'position_bloc.dart';
 
 abstract class PositionBlocState extends Equatable {
-  final GeoPoint? lastPosition;
+  final LatLng? lastPosition;
 
   const PositionBlocState({required this.lastPosition});
 
@@ -27,7 +27,7 @@ abstract class PositionBlocState extends Equatable {
 
   bool get hasLastPosition => lastPosition != null;
 
-  PositionBlocState toIdle({GeoPoint? position, bool? hasPermission, bool? isServiceEnabled}) {
+  PositionBlocState toIdle({LatLng? position, bool? hasPermission, bool? isServiceEnabled}) {
     return PositionBlocIdle(
       lastPosition: position ?? lastPosition,
       hasPermission: hasPermission ?? this.hasPermission,
@@ -48,7 +48,7 @@ abstract class PositionBlocState extends Equatable {
 
   PositionBlocState toLocated({
     required bool isRealTime,
-    required GeoPoint currentPosition,
+    required LatLng currentPosition,
   }) {
     return PositionBlocLocated(
       isRealTime: isRealTime,
@@ -108,7 +108,7 @@ class PositionBlocFailed extends PositionBlocState {
 /// Other positions will be issued if [isRealTime] is true
 class PositionBlocLocated extends PositionBlocState {
   final bool isRealTime;
-  final GeoPoint currentPosition;
+  final LatLng currentPosition;
 
   const PositionBlocLocated({
     required this.isRealTime,

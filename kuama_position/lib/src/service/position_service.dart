@@ -1,6 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:kuama_position/src/repositories/position_repository.dart';
-import 'package:pure_extensions/pure_extensions.dart';
+import 'package:maps_toolkit/maps_toolkit.dart';
 
 // TODO: Handle exception in geolocator_platform_interface/src/implementations/method_channel_geolocator.dart:229
 class PositionService {
@@ -12,12 +12,12 @@ class PositionService {
   }
 
   /// Request the current position of the user
-  Future<GeoPoint> getCurrentPosition() async {
+  Future<LatLng> getCurrentPosition() async {
     return await locatorRepo.currentPosition;
   }
 
   /// Track the current position of the user
-  Stream<GeoPoint> get onPositionChanges {
+  Stream<LatLng> get onPositionChanges {
     return locatorRepo.onPositionChanges;
   }
 

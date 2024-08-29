@@ -3,8 +3,8 @@ import 'package:get_it/get_it.dart';
 import 'package:kuama_permissions/kuama_permissions.dart';
 import 'package:kuama_position/src/blocs/position_bloc.dart';
 import 'package:kuama_position/src/service/position_service.dart';
+import 'package:maps_toolkit/maps_toolkit.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:pure_extensions/pure_extensions.dart';
 
 class _MockPositionService extends Mock implements PositionService {}
 
@@ -122,7 +122,7 @@ void main() {
       init(permission: EmissionType.alreadyHas, service: EmissionType.alreadyHas);
 
       when(() => mockPositionService.getCurrentPosition()).thenAnswer((_) async {
-        return const GeoPoint(0.0, 0.0);
+        return LatLng(0.0, 0.0);
       });
 
       bloc.locate();
@@ -134,9 +134,9 @@ void main() {
             isRealTime: false,
             lastPosition: null,
           ),
-          const PositionBlocLocated(
+          PositionBlocLocated(
             isRealTime: false,
-            currentPosition: GeoPoint(0.0, 0.0),
+            currentPosition: LatLng(0.0, 0.0),
           ),
         ]),
       );
@@ -146,8 +146,8 @@ void main() {
       expect(
         bloc.stream,
         emitsInOrder([
-          const PositionBlocIdle(
-            lastPosition: GeoPoint(0.0, 0.0),
+          PositionBlocIdle(
+            lastPosition: LatLng(0.0, 0.0),
             hasPermission: true,
             isServiceEnabled: true,
           ),
@@ -162,11 +162,11 @@ void main() {
       init(permission: EmissionType.alreadyHas, service: EmissionType.alreadyHas);
 
       when(() => mockPositionService.getCurrentPosition()).thenAnswer((_) async {
-        return const GeoPoint(0.0, 0.0);
+        return LatLng(0.0, 0.0);
       });
       when(() => mockPositionService.onPositionChanges).thenAnswer((_) async* {
         await Future.delayed(Duration.zero);
-        yield const GeoPoint(1.0, 1.0);
+        yield LatLng(1.0, 1.0);
       });
 
       // ======== Test user tracking ========
@@ -180,13 +180,13 @@ void main() {
             isRealTime: true,
             lastPosition: null,
           ),
-          const PositionBlocLocated(
+          PositionBlocLocated(
             isRealTime: true,
-            currentPosition: GeoPoint(0.0, 0.0),
+            currentPosition: LatLng(0.0, 0.0),
           ),
-          const PositionBlocLocated(
+          PositionBlocLocated(
             isRealTime: true,
-            currentPosition: GeoPoint(1.0, 1.0),
+            currentPosition: LatLng(1.0, 1.0),
           ),
         ]),
       );
@@ -196,8 +196,8 @@ void main() {
       await expectLater(
         bloc.stream,
         emitsInOrder([
-          const PositionBlocIdle(
-            lastPosition: GeoPoint(1.0, 1.0),
+          PositionBlocIdle(
+            lastPosition: LatLng(1.0, 1.0),
             hasPermission: true,
             isServiceEnabled: true,
           ),
@@ -211,17 +211,17 @@ void main() {
       await expectLater(
         bloc.stream,
         emitsInOrder([
-          const PositionBlocLocating(
+          PositionBlocLocating(
             isRealTime: true,
-            lastPosition: GeoPoint(1.0, 1.0),
+            lastPosition: LatLng(1.0, 1.0),
           ),
-          const PositionBlocLocated(
+          PositionBlocLocated(
             isRealTime: true,
-            currentPosition: GeoPoint(0.0, 0.0),
+            currentPosition: LatLng(0.0, 0.0),
           ),
-          const PositionBlocLocated(
+          PositionBlocLocated(
             isRealTime: true,
-            currentPosition: GeoPoint(1.0, 1.0),
+            currentPosition: LatLng(1.0, 1.0),
           ),
         ]),
       );
@@ -231,8 +231,8 @@ void main() {
       await expectLater(
         bloc.stream,
         emitsInOrder([
-          const PositionBlocIdle(
-            lastPosition: GeoPoint(1.0, 1.0),
+          PositionBlocIdle(
+            lastPosition: LatLng(1.0, 1.0),
             hasPermission: true,
             isServiceEnabled: true,
           ),
@@ -260,10 +260,10 @@ void main() {
       ));
 
       when(() => mockPositionService.getCurrentPosition()).thenAnswer((_) async {
-        return const GeoPoint(0.0, 0.0);
+        return LatLng(0.0, 0.0);
       });
       when(() => mockPositionService.onPositionChanges).thenAnswer((_) async* {
-        yield const GeoPoint(0.0, 0.0);
+        yield LatLng(0.0, 0.0);
       });
 
       bloc.track();
@@ -277,9 +277,9 @@ void main() {
             isRealTime: true,
             lastPosition: null,
           ),
-          const PositionBlocLocated(
+          PositionBlocLocated(
             isRealTime: true,
-            currentPosition: GeoPoint(0.0, 0.0),
+            currentPosition: LatLng(0.0, 0.0),
           ),
         ]),
       );
@@ -293,8 +293,8 @@ void main() {
       await expectLater(
         bloc.stream,
         emitsInOrder([
-          const PositionBlocIdle(
-            lastPosition: GeoPoint(0.0, 0.0),
+          PositionBlocIdle(
+            lastPosition: LatLng(0.0, 0.0),
             hasPermission: true,
             isServiceEnabled: true,
           ),
@@ -313,7 +313,7 @@ void main() {
 
     test('Emit real time position after bloc is initialized but track request before it', () async {
       when(() => mockPositionService.getCurrentPosition()).thenAnswer((_) async {
-        return const GeoPoint(0.0, 0.0);
+        return LatLng(0.0, 0.0);
       });
       when(() => mockPositionService.onPositionChanges).thenAnswer((_) async* {});
 
@@ -333,9 +333,9 @@ void main() {
             isRealTime: true,
             lastPosition: null,
           ),
-          const PositionBlocLocated(
+          PositionBlocLocated(
             isRealTime: true,
-            currentPosition: GeoPoint(0.0, 0.0),
+            currentPosition: LatLng(0.0, 0.0),
           ),
         ]),
       );

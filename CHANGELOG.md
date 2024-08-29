@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.0.0 (2024-08-29)
+- fix: replaced pure_extensions with maps_toolkit for kuama_position and removed tuple package
+
 ## 1.3.0 (2024-07-23)
 - chore: bumped permission_handler to `^11.3.1`
 - chore: changed rxdart dependency constraints to support version `>=0.27.0 <0.29.0`
