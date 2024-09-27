@@ -52,6 +52,23 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
   /// There is no need to call it if you weren't listening to the realtime position.
   void unTrack() => add(const _UnTrackPositionBloc());
 
+  /// !!! WARNING !!! It is not stable. It could get breakages
+  late Stream<GeoPoint> onRealtimePositionChanges = _createRealtimePositionStream();
+
+  Stream<GeoPoint> _createRealtimePositionStream() {
+    return Stream<GeoPoint>.multi((controller) {
+      final subscription = stream.listen((state) {
+        if (state is PositionBlocLocated) controller.addSync(state.currentPosition);
+      });
+      track();
+      controller.onCancel = () async {
+        unTrack();
+        await subscription.cancel();
+        controller.closeSync();
+      };
+    });
+  }
+
   Future<void> _mapEventToState(_PositionBlocEvent event, Emitter<PositionBlocState> emit) async {
     return event.map<Future<void>>(updateStatus: (event) {
       return _mapStatusUpdate(emit, event.hasPermissionGranted, event.isServiceEnabled);
