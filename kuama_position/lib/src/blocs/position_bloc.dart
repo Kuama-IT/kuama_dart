@@ -23,6 +23,7 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
     Permission.locationAlways
   };
 
+  final PermissionsBloc _permissionsBloc;
   final _initSubs = CompositeSubscription();
   final _positionSubs = CompositeSubscription();
   var _realTimeListenerCount = 0;
@@ -30,7 +31,8 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
   PositionBloc({
     LatLng? lastPosition,
     required PermissionsBloc permissionsBloc,
-  }) : super(PositionBlocIdle(
+  })  : _permissionsBloc = permissionsBloc,
+        super(PositionBlocIdle(
           lastPosition: lastPosition,
           hasPermission: permissionsBloc.state.checkAny(permissions, PermissionStatus.granted),
           isServiceEnabled: permissionsBloc.state.checkService(Service.location),
@@ -63,7 +65,7 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
       return _mapUnTrack(emit, event);
     }, emitTrackingError: (event) async {
       if (!state.canLocalize) return;
-      emit(state.toFailed(failure: event.failure));
+      emit(state.toFailed(error: event.failure));
     }, emitTrackingPosition: (event) async {
       if (!state.canLocalize) return;
       emit(state.toLocated(isRealTime: true, currentPosition: event.position));
@@ -133,10 +135,10 @@ class PositionBloc extends Bloc<_PositionBlocEvent, PositionBlocState> {
       try {
         final position = await _service.getCurrentPosition();
         emit(state.toLocated(isRealTime: false, currentPosition: position));
-      } on Failure catch (failure) {
-        emit(state.toFailed(failure: failure));
+      } catch (error) {
+        _permissionsBloc.check(permissions);
+        emit(state.toFailed(error: error));
       }
-      return;
     }
   }
 

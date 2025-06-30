@@ -42,8 +42,8 @@ abstract class PositionBlocState extends Equatable {
     );
   }
 
-  PositionBlocState toFailed({required Failure failure}) {
-    return PositionBlocFailed(lastPosition: lastPosition, failure: failure);
+  PositionBlocState toFailed({required Object error}) {
+    return PositionBlocFailed(lastPosition: lastPosition, error: error);
   }
 
   PositionBlocState toLocated({
@@ -93,15 +93,15 @@ class PositionBlocLocating extends PositionBlocState {
 
 /// Localization failed
 class PositionBlocFailed extends PositionBlocState {
-  final Failure failure;
+  final Object error;
 
   const PositionBlocFailed({
     required super.lastPosition,
-    required this.failure,
+    required this.error,
   });
 
   @override
-  List<Object?> get props => [lastPosition, failure];
+  List<Object?> get props => [lastPosition, error];
 }
 
 /// The user has been located
