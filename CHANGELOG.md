@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 3.0.0 (2025-06-30)
+- fix!: catched all getCurrentPosition errors and force permissions refresh
+
+**Breaking changes**
+
+- Renamed `PositionBlocFailed.failure` field with `Failure` type to `PositionBlocFailed.error`
+  field with `Object` type for support catch all errors 
+
 ## 2.0.0 (2024-08-29)
 - fix: replaced pure_extensions with maps_toolkit for kuama_position and removed tuple package
 
