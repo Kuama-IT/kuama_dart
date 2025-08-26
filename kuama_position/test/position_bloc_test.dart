@@ -352,4 +352,36 @@ void main() {
       await bloc.close();
     });
   });
+
+  // TODO: Test realtimePosition method
+  // group('realtimePosition', () {
+  //   test('1', () async {
+  //     init(permission: EmissionType.alreadyHas, service: EmissionType.alreadyHas);
+  //     bloc.emit(const PositionBlocIdle(
+  //       lastPosition: null,
+  //       hasPermission: true,
+  //       isServiceEnabled: true,
+  //     ));
+  //
+  //     when(() => mockPositionService.getCurrentPosition()).thenAnswer((_) async {
+  //       return const GeoPoint(0.0, 0.0);
+  //     });
+  //     when(() => mockPositionService.onPositionChanges).thenAnswer((_) async* {
+  //       yield const GeoPoint(0.0, 0.0);
+  //     });
+  //
+  //     final sub1 = bloc.onRealtimePositionChanges.listen((event) {
+  //       print('Listen');
+  //     });
+  //
+  //     final sub2 = bloc.onRealtimePositionChanges.listen((event) {
+  //       print('Listen');
+  //     });
+  //
+  //     await Future.delayed(const Duration(seconds: 1), () {
+  //       // sub1.cancel();
+  //       sub2.cancel();
+  //     });
+  //   });
+  // });
 }
